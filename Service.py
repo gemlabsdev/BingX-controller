@@ -51,7 +51,6 @@ class PerpetualService:
         logger.info(f'Requesting open {self.symbol} positions from BingX')
         response = self.client.positions(self.symbol)
         if response['positions'] is None:
-            logger.info(f'No open positions for {self.symbol}')
             return
         return response['positions'][0]
 
