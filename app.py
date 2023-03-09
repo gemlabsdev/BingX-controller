@@ -26,9 +26,7 @@ def perpetual_order():
                                side=data['side'],
                                action=data['action'],
                                quantity=data['quantity'],
-                               trade_type=data['trade_type'],
-                               margin=data['margin'],
-                               leverage=data['leverage'])
+                               trade_type=data['trade_type'])
     if data['action'] == 'Open':
         return service.open_trade()
     if data['action'] == 'Close':
@@ -47,5 +45,4 @@ def change_leverage():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=8000, debug=True)
-    # app.run()
+    app.run()
