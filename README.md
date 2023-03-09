@@ -6,8 +6,8 @@ A controller for routing webhook trading signals to the BingX API
 <details><summary>/perpetual/trade</summary>
 <p></p>
 Handles opening and closing of Long and Short positions. "quantity" is in USDT
-
-Open Long
+<p></p>
+Open a Long
 
 ``` json
 {
@@ -18,7 +18,7 @@ Open Long
     "quantity": 10.0
 }
 ```
-Close Long
+Close a Long
 
 ``` json
 {
@@ -30,7 +30,7 @@ Close Long
 }
 ```
  
-Open Short
+Open a Short
 ``` json
 {
     "symbol": "BTCUSDT",
@@ -41,7 +41,7 @@ Open Short
 }
 ```
 
-Close Short
+Close a Short
 ``` json
 {
     "symbol": "BTCUSDT",
