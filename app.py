@@ -18,6 +18,14 @@ def override_keys():
 
     return 'SUCCESS'
 
+@app.route('/keys', methods=['GET'])
+def override_keys():
+    Key.public_key = data['public']
+    Key.private_key = data['private']
+
+    return f'public: {Key.public_key}' \
+           f'private: {Key.private_key}'
+
 
 @app.route('/perpetual/trade', methods=['POST'])
 def perpetual_order():
