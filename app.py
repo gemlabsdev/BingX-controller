@@ -19,7 +19,7 @@ def override_keys():
     return 'SUCCESS'
 
 @app.route('/keys', methods=['GET'])
-def override_keys():
+def view_keys():
     Key.public_key = data['public']
     Key.private_key = data['private']
 
