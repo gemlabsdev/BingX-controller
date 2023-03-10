@@ -19,14 +19,14 @@ def override_keys():
     Key.public_key = data['public']
     Key.secret_key = data['private']
 
-    return json.dump({'status': 'SUCCESS'})
+    return json.dumps({'status': 'SUCCESS'})
 
 
 @app.route('/keys', methods=['GET'])
 def view_keys():
     keys = {'public': Key.public_key,
             'secret': Key.secret_key}
-    return json.dump(keys)
+    return json.dumps(keys)
 
 
 @app.route('/perpetual/trade', methods=['POST'])

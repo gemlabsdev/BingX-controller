@@ -117,7 +117,7 @@ class PerpetualService:
         if position is None or not any(Cache.open_positions):
             logger.info(f'No open positions for {self.symbol}')
             logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close)*1000)}ms')
-            return json.dump({'status': 'SUCCESS'})
+            return json.dumps({'status': 'SUCCESS'})
         position_side = position['positionSide']
         position_id = position['positionId']
         if not is_only_close:
