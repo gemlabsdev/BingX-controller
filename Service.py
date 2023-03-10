@@ -124,7 +124,6 @@ class PerpetualService:
         logger.info(f'Closing {position_side.upper()} position for {self.symbol}')
         response = self.client.close_position(symbol=self.symbol, positionId=position_id)
         logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
-        print(Cache.open_positions)
         self.remove_position_from_cache()
 
         return response
