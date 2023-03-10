@@ -1,7 +1,8 @@
+import json
 import time
 
 from bingX.perpetual.v1 import Perpetual
-from botLogger import logger
+from logger import logger
 from Cache import Cache
 
 
@@ -116,7 +117,7 @@ class PerpetualService:
         if position is None or not any(Cache.open_positions):
             logger.info(f'No open positions for {self.symbol}')
             logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close)*1000)}ms')
-            return 'NONE'
+            return json.dumps({'status': 'SUCCESS'})
         position_side = position['positionSide']
         position_id = position['positionId']
         if not is_only_close:

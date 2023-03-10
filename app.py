@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def home():
-    return 'BING-X CONTROLLER BY BV BREADGINEER'
+    return 'BING-X CONTROLLER BY BREADGINEER'
 
 
 @app.route('/keys', methods=['POST'])
@@ -19,13 +19,14 @@ def override_keys():
     Key.public_key = data['public']
     Key.secret_key = data['private']
 
-    return 'SUCCESS'
+    return json.dumps({'status': 'SUCCESS'})
 
 
 @app.route('/keys', methods=['GET'])
 def view_keys():
-    return f'public: {Key.public_key}' \
-           f'private: {Key.secret_key}'
+    keys = {'public': Key.public_key,
+            'secret': Key.secret_key}
+    return json.dumps(keys)
 
 
 @app.route('/perpetual/trade', methods=['POST'])
@@ -57,6 +58,5 @@ def change_leverage():
 
 if __name__ == '__main__':
     from waitress import serve
+
     serve(app)
-
-
