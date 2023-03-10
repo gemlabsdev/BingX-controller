@@ -6,17 +6,26 @@ from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 
 app = Flask(__name__)
-trade_cache = {'ETH-USDT': None,
-               'DOT-USDT': 100000}
-trade_cache_empty = {}
+
+
+@app.route('/', methods=['GET'])
+def home():
+    return 'BING-X CONTROLLER BY BV BREADGINEER'
+
 
 @app.route('/keys', methods=['POST'])
 def override_keys():
     data = json.loads(request.data)
     Key.public_key = data['public']
-    Key.private_key = data['private']
+    Key.secret_key = data['private']
 
     return 'SUCCESS'
+
+
+@app.route('/keys', methods=['GET'])
+def view_keys():
+    return f'public: {Key.public_key}' \
+           f'private: {Key.secret_key}'
 
 
 @app.route('/perpetual/trade', methods=['POST'])
@@ -47,4 +56,4 @@ def change_leverage():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000)

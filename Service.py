@@ -70,7 +70,7 @@ class PerpetualService:
             return
         return response['positions'][0]
 
-    def add_position_to_cache(self, position_id):
+    def add_position_to_cache(self, position_id=None):
         logger.info(f'Adding {self.symbol} {self.position_side} position to cache')
         Cache.open_positions[self.symbol] = {'positionId': position_id,
                                              'positionSide': self.position_side}
@@ -84,8 +84,10 @@ class PerpetualService:
         return
 
     def open_trade(self):
-        self.close_trade(isOnlyClose=False)
-        logger.info(f'---------------------OPEN-POSITION---------------------')
+        start_time_open_close = time.time()
+        self.close_trade(is_only_close=False,)
+        start_time_open = time.time()
+        logger.info(f'---------------------OPEN-POSITION----------------------')
         logger.info(f'Opening new {self.position_side} for {self.symbol}')
         response = self.client.place_order(symbol=self.symbol,
                                            side=self.side,
@@ -93,31 +95,36 @@ class PerpetualService:
                                            entrustPrice=self.entrust_price,
                                            entrustVolume=self.entrust_volume,
                                            tradeType=self.trade_type)
-        logger.info(f'OPEN-POSITION: DONE')
+        logger.info(f'OPEN-POSITION: DONE IN {int((time.time() - start_time_open)*1000)}ms')
+        logger.info(f'--------------------TOTAL-ORDER-TIME--------------------')
+        logger.info(f'CLOSE-OPEN-REQUEST DONE IN {int((time.time() - start_time_open_close)*1000)}ms')
         logger.info(f'---------------------CACHE-POSITION---------------------')
+        start_time_cache = time.time()
         position = self.get_api_open_position()
         self.add_position_to_cache(position['positionId'])
-        logger.info(f'CACHE-POSITION: DONE')
+        logger.info(f'CACHE-POSITION: DONE IN {int((time.time() - start_time_cache)*1000)}ms')
 
         return response
 
-    def close_trade(self, isOnlyClose=True):
-        if isOnlyClose:
+    def close_trade(self, is_only_close=True):
+        start_time_close = time.time()
+        if is_only_close:
             logger.info(f'---------------------CLOSE-POSITION---------------------')
         else:
             logger.info(f'-----------------CLOSE-EXISTING-POSITION----------------')
         position = self.get_open_position()
-        if position is None:
+        if position is None or not any(Cache.open_positions):
             logger.info(f'No open positions for {self.symbol}')
-            logger.info(f'CLOSE-POSITION: DONE')
+            logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close)*1000)}ms')
             return 'NONE'
         position_side = position['positionSide']
         position_id = position['positionId']
-        if not isOnlyClose:
+        if not is_only_close:
             logger.warn(f'Open position found - Only 1 open position per symbol allowed')
         logger.info(f'Closing {position_side.upper()} position for {self.symbol}')
         response = self.client.close_position(symbol=self.symbol, positionId=position_id)
-        logger.info(f'CLOSE-POSITION: DONE')
+        logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
         self.remove_position_from_cache()
 
         return response
+
