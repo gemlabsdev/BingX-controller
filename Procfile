@@ -1,1 +1,1 @@
-web: waitress-serve --port=$PORT app:application
+web: waitress-serve --port=$PORT --call 'flaskr:create_app'
