@@ -1,2 +1,4 @@
 class Cache:
-    open_positions = {}
+    open_positions = {'XXX-USDT': {'positionId': None,
+                                   'positionSide': None}
+                      }
