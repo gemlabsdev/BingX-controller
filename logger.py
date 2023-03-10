@@ -1,4 +1,5 @@
 import logging
+logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger('BingXBot')
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
