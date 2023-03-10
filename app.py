@@ -4,7 +4,6 @@ from Cache import Cache
 from flask import Flask, request
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
-from waitress import serve
 
 app = Flask(__name__)
 
@@ -57,7 +56,7 @@ def change_leverage():
 
 
 if __name__ == '__main__':
-    app.run()
+    from waitress import serve
     serve(app)
 
 
