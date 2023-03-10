@@ -7,9 +7,12 @@ from Service import PerpetualService
 
 app = Flask(__name__)
 
+
 @app.route('/', methods=['GET'])
 def home():
     return 'BING-X CONTROLLER BY BV BREADGINEER'
+
+
 @app.route('/keys', methods=['POST'])
 def override_keys():
     data = json.loads(request.data)
@@ -18,9 +21,9 @@ def override_keys():
 
     return 'SUCCESS'
 
+
 @app.route('/keys', methods=['GET'])
 def view_keys():
-
     return f'public: {Key.public_key}' \
            f'private: {Key.secret_key}'
 
@@ -54,4 +57,3 @@ def change_leverage():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
-
