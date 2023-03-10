@@ -6,9 +6,6 @@ from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 
 app = Flask(__name__)
-trade_cache = {'ETH-USDT': None,
-               'DOT-USDT': 100000}
-trade_cache_empty = {}
 
 @app.route('/', methods=['GET'])
 def home():
@@ -50,4 +47,5 @@ def change_leverage():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
+
