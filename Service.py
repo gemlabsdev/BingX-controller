@@ -70,7 +70,7 @@ class PerpetualService:
             return
         return response['positions'][0]
 
-    def add_position_to_cache(self, position_id):
+    def add_position_to_cache(self, position_id=None):
         logger.info(f'Adding {self.symbol} {self.position_side} position to cache')
         Cache.open_positions[self.symbol] = {'positionId': position_id,
                                              'positionSide': self.position_side}
