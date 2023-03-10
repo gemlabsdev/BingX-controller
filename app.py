@@ -1,12 +1,14 @@
 import json
 from Key import Key
+from Cache import Cache
 from flask import Flask, request
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 
-
 app = Flask(__name__)
-
+trade_cache = {'ETH-USDT': None,
+               'DOT-USDT': 100000}
+trade_cache_empty = {}
 
 @app.route('/keys', methods=['POST'])
 def override_keys():
