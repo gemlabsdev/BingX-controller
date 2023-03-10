@@ -10,6 +10,9 @@ trade_cache = {'ETH-USDT': None,
                'DOT-USDT': 100000}
 trade_cache_empty = {}
 
+@app.route('/', methods=['GET'])
+def home():
+    return 'BING-X CONTROLLER BY BV BREADGINEER'
 @app.route('/keys', methods=['POST'])
 def override_keys():
     data = json.loads(request.data)
