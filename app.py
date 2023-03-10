@@ -57,7 +57,6 @@ def change_leverage():
 
 
 if __name__ == '__main__':
-    app.run()
     serve(app)
 
 
