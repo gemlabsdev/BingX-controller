@@ -14,17 +14,15 @@ def home():
 def override_keys():
     data = json.loads(request.data)
     Key.public_key = data['public']
-    Key.private_key = data['private']
+    Key.secret_key = data['private']
 
     return 'SUCCESS'
 
 @app.route('/keys', methods=['GET'])
 def view_keys():
-    Key.public_key = data['public']
-    Key.private_key = data['private']
 
     return f'public: {Key.public_key}' \
-           f'private: {Key.private_key}'
+           f'private: {Key.secret_key}'
 
 
 @app.route('/perpetual/trade', methods=['POST'])
