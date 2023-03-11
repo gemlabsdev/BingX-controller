@@ -1,16 +1,22 @@
 import json
 from Key import Key
-from Cache import Cache
-from flask import Flask, request
+from flask_cors import CORS
+from flask import Flask, request, render_template
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=f'./webapp/dist/')
+CORS(app)
 
 
-@app.route('/', methods=['GET'])
-def home():
-    return 'BING-X CONTROLLER BY BREADGINEER'
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+
+@app.route('/assets/<path:path>')
+def send_assets(path):
+    return app.send_static_file(f'assets/{path}')
 
 
 @app.route('/keys', methods=['POST'])
@@ -58,4 +64,5 @@ def change_leverage():
 
 if __name__ == '__main__':
     from waitress import serve
-    serve(app)
+
+    serve(app, host='0.0.0.0', port=3000)
