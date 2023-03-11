@@ -58,5 +58,4 @@ def change_leverage():
 
 if __name__ == '__main__':
     from waitress import serve
-
     serve(app)
