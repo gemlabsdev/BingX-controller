@@ -2,10 +2,8 @@
 
 </template>
 
-<script>
-export default {
-  name: "MessageTemplate"
-}
+<script setup>
+
 </script>
 
 <style scoped>

@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.2.45"
+    "highlight.js": "^11.7.0",
+    "vue": "^3.2.45",
+    "vue-code-highlight": "^0.7.8"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",

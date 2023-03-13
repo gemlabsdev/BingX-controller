@@ -1,5 +1,9 @@
 <template>
 <n-form ref="apiKeys">
+  <NH3>
+    {{ title }}
+  </NH3>
+
   <n-form-item
       ref="publicKey"
       label="Public"
@@ -31,10 +35,13 @@
 </template>
 
 <script setup>
-import {NForm, NFormItem, NInput, NButton, useMessage} from "naive-ui";
+import {NForm, NFormItem, NInput, NButton, useMessage, NH3} from "naive-ui";
 import {ref} from "vue";
 
+const props = defineProps(['isToUpdate'])
 const emit = defineEmits(['submit'])
+
+const title = ref(props.isToUpdate ? 'Update API keys' : 'Load API keys')
 const apiKeys = ref(null)
 const message = useMessage()
 const keys = ref({
@@ -73,13 +80,21 @@ async function handleValidation(e) {
         apiKeys.value?.validate(
           async (errors) => {
             if (!errors) {
-              const status = await postKeys()
-              if (status !== 'SUCCESS') {
-                message.error("An error has occurred. Please try again")
-                return
+              try {
+                const status = await postKeys();
+                if (status !== 'SUCCESS') {
+                  message.error("An error has occurred. Please try again")
+                  return
+                }
+                if (props.isToUpdate) {
+                  message.success('API keys were updated successfully');
+                } else {
+                  message.success('API keys were added successfully');
+                }
+                emit('submit');
+              } catch (error) {
+                message.error("An error has occurred")
               }
-              message.success('API keys were added successfully')
-              emit('submit')
             } else {
               console.log(errors);
               message.error("An error has occurred")
