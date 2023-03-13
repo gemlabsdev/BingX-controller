@@ -1,7 +1,7 @@
 import json
 from Key import Key
 from flask_cors import CORS
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, make_response, jsonify
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 
@@ -24,8 +24,10 @@ def override_keys():
     data = json.loads(request.data)
     Key.public_key = data['public']
     Key.secret_key = data['private']
+    response = make_response(jsonify({'status': 'SUCCESS'}))
+    response.headers['Content-Type'] = "application/json"
 
-    return json.dumps({'status': 'SUCCESS'})
+    return response, 200
 
 
 @app.route('/keys', methods=['GET'])
