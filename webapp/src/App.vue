@@ -1,11 +1,15 @@
 <script setup>
 
-import Board from "./components/Boards/BoardContainer.vue";
 import {NConfigProvider, darkTheme, NMessageProvider} from "naive-ui";
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
+import BoardContainer from "./components/Boards/BoardContainer.vue";
 
 hljs.registerLanguage('json', json)
+/* TODO: - update webhooks live
+         - make endpoints component
+         - get url from window
+* */
 
 </script>
 
@@ -17,7 +21,7 @@ hljs.registerLanguage('json', json)
           <img src="./assets/bingx.svg" class="logo" alt="BingX" />
         </a>
       </div>
-    <Board />
+    <BoardContainer />
     </NMessageProvider>
   </NConfigProvider>
 

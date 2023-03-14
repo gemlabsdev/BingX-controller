@@ -5,12 +5,13 @@
       size="small"
       justify-content="center"
       type="line"
-      display-directive="show"
     >
     <NTabPane
         class="action-board-tabs__tab"
         name="log"
-        tab="Log">
+        tab="Log"
+        display-directive="show"
+    >
       <Log />
     </NTabPane>
     <NTabPane
