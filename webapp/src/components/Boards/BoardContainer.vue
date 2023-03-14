@@ -14,9 +14,9 @@ import {NCard} from "naive-ui";
 import {ref} from "vue";
 import ActionBoard from "./ActionBoard.vue";
 
-// const isFirstLogin = ref(false)
+const isFirstLogin = ref(false)
 //prod
-const isFirstLogin = ref(true)
+// const isFirstLogin = ref(true)
 
 const toggleFirstLogIn = function () {
   isFirstLogin.value = isFirstLogin.value === true ? false : false

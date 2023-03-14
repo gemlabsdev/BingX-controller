@@ -5,22 +5,27 @@
       size="small"
       justify-content="center"
       type="line"
+      display-directive="show"
     >
     <NTabPane
         class="action-board-tabs__tab"
         name="log"
         tab="Log">
+      <Log />
     </NTabPane>
     <NTabPane
         class="action-board-tabs__tab"
         name="keys"
-        tab="API Keys">
+        tab="API Keys"
+    >
       <KeyForm :is-to-update="true"/>
     </NTabPane>
     <NTabPane
         class="action-board-tabs__tab"
         name="templates"
-        tab="Templates">
+        tab="Templates"
+        display-directive="show:lazy"
+    >
       <Template />
     </NTabPane>
   </NTabs>
@@ -30,6 +35,7 @@
 import {NTabPane, NTabs} from "naive-ui";
 import KeyForm from "../Actions/KeyForm.vue";
 import Template from "../Actions/Template.vue";
+import Log from "../Actions/Log.vue";
 </script>
 
 <style scoped>

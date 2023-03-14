@@ -4,9 +4,30 @@ from flask_cors import CORS
 from flask import Flask, request, render_template, make_response, jsonify
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__, static_folder=f'./webapp/dist/')
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    with open('logs.log', 'r') as f:
+        logs = f.read()
+    emit('logs', logs)
+
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+
+@socketio.on('message')
+def handle_message(data):
+    print('Received message:', data)
+    socketio.emit('response', 'Server response')
 
 
 @app.route('/')
@@ -64,7 +85,15 @@ def change_leverage():
     return f'{{"symbol":"{service.symbol}", "leverage":"{service.leverage}"}}'
 
 
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    with open('logs.log', 'r') as f:
+        logs = f.read()
+    return logs
+
+
 if __name__ == '__main__':
     from waitress import serve
 
+    socketio.run(app)
     serve(app, host='0.0.0.0', port=3000)
