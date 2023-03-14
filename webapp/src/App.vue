@@ -3,12 +3,18 @@
 import {NConfigProvider, darkTheme, NMessageProvider} from "naive-ui";
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
+import javascript from 'highlight.js/lib/languages/javascript'
 import BoardContainer from "./components/Boards/BoardContainer.vue";
+import {onMounted, ref} from "vue";
 
 hljs.registerLanguage('json', json)
-/* TODO: - update webhooks live
-         - make endpoints component
-         - get url from window
+hljs.registerLanguage('javascript', javascript)
+
+
+/* TODO: - scroll to bottom on the logs display
+         - add hover to say that quantity is always usdt
+         - fix up python files
+         -fix up log lines
 * */
 
 </script>

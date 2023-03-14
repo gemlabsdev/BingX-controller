@@ -1,11 +1,26 @@
 <template>
   <NTabs
       class="action-board-tabs__container"
-      default-value="log"
+      default-value="endpoints"
       size="small"
       justify-content="center"
       type="line"
     >
+    <NTabPane
+        class="action-board-tabs__tab"
+        name="endpoints"
+        tab="Endpoints"
+    >
+      <Endpoints />
+    </NTabPane>
+    <NTabPane
+        class="action-board-tabs__tab"
+        name="templates"
+        tab="Templates"
+        display-directive="show:lazy"
+    >
+      <Template />
+    </NTabPane>
     <NTabPane
         class="action-board-tabs__tab"
         name="log"
@@ -21,14 +36,6 @@
     >
       <KeyForm :is-to-update="true"/>
     </NTabPane>
-    <NTabPane
-        class="action-board-tabs__tab"
-        name="templates"
-        tab="Templates"
-        display-directive="show:lazy"
-    >
-      <Template />
-    </NTabPane>
   </NTabs>
 </template>
 
@@ -37,6 +44,7 @@ import {NTabPane, NTabs} from "naive-ui";
 import KeyForm from "../Actions/KeyForm.vue";
 import Template from "../Actions/Template.vue";
 import Log from "../Actions/Log.vue";
+import Endpoints from "../Actions/Endpoints.vue";
 </script>
 
 <style scoped>

@@ -11,16 +11,31 @@
 <script setup>
 import KeyForm from "../Actions/KeyForm.vue";
 import {NCard} from "naive-ui";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import ActionBoard from "./ActionBoard.vue";
 
-const isFirstLogin = ref(false)
+const isFirstLogin = ref(true)
 //prod
 // const isFirstLogin = ref(true)
 
 const toggleFirstLogIn = function () {
-  isFirstLogin.value = isFirstLogin.value === true ? false : false
+  const hasRegisteredKeys = localStorage.getItem("hasRegisteredKeys")
+  if (!hasRegisteredKeys) {
+    localStorage.setItem("hasRegisteredKeys","true")
+  }
+  isReturningUser()
+
 };
+
+const isReturningUser = function () {
+    const hasRegisteredKeys = localStorage.getItem("hasRegisteredKeys")
+    if (hasRegisteredKeys === "true") {
+      isFirstLogin.value = false
+    }
+};
+
+onMounted(() => isReturningUser())
+
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <template>
   <div class="logs__log-content_container">
-    <NCard class="logs__log-content_card" @click.once="copyLogsToClipboard">
+    <NCard class="logs__log-content_card" @click.once="scrollToLogBottom">
       <div class="logs__log-content_card-border">
         <NCode
           class="logs__log-content_content"
@@ -66,6 +66,7 @@ INFO - 2023-03-14 09:01:12,750 - -----------------REQUEST-FINISHED--------------
 `)
 const message = useMessage()
 const state = reactive({
+  messageCount: 0,
   logs: '',
 })
 const upToDateLogs = computed(() => {
@@ -84,66 +85,53 @@ const copyLogsToClipboard = async function () {
   message.success('Template copied to clipboard')
 };
 
-
 const socket = io('http://127.0.0.1:8000/');
-
 
 const handleConnect = () => {
   console.log('Connected to server');
+  scrollToLogBottom()
 };
 const handleDisconnect = () => {
   console.log('Disconnected from server');
 };
-const handleResponse = data => {
-  console.log('Received response:', data);
-  message.value = data;
-};
+
+const handleLogging = function (logs)  {
+  state.logs += state.messageCount === 0 ? logs : logs + '\n'
+  state.messageCount += 1
+  scrollToLogBottom()
+}
 
 onMounted(() => {
-      scrollToLogBottom()
   socket.on('connect', handleConnect);
   socket.on('disconnect', handleDisconnect);
-  socket.on('response', handleResponse);
-  socket.on('logs', logs => {
-    state.logs = logs;
-    console.log('ok')
-    scrollToLogBottom()
-  });
+  socket.on('logs', logs => handleLogging(logs))
 });
+
 onUnmounted(() => {
   socket.off('connect', handleConnect);
   socket.off('disconnect', handleDisconnect);
-  socket.off('response', handleResponse);
+  socket.off('logs', logs => handleLogging(logs))
+
 });
-
-const sendMessage = () => {
-  console.log(state.logs)
-  socket.emit('message', 'Hello from client');
-};
-
 
 
 </script>
 
 <style scoped>
 .logs__log-content_container {
-
   margin: 0px 0px;
   padding: 0px 10px;
-
 }
+
 .logs__log-content_card {
   border: 1px solid rgba(256,256,256,0.4);
   padding: 10px;
   margin-bottom: 6px;
-
 }
 
 .logs__log-content_card-border {
   overflow: scroll;
   max-height: 246px;
-
-
 }
 
 .logs__log-content_content {

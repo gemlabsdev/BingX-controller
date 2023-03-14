@@ -36,7 +36,8 @@
 
 <script setup>
 import {NForm, NFormItem, NInput, NButton, useMessage, NH3} from "naive-ui";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
+import {hostname} from "../hostname"
 
 const props = defineProps(['isToUpdate'])
 const emit = defineEmits(['submit'])
@@ -65,7 +66,7 @@ const rules = {
 }
 
 async function postKeys() {
-  const response = await fetch('http://127.0.0.1:8000/keys', {
+  const response = await fetch(`${hostname}/keys`, {
     method: 'POST',
     body: JSON.stringify(keys.value)
   })
@@ -102,6 +103,7 @@ async function handleValidation(e) {
           }
         );
 }
+
 
 
 </script>

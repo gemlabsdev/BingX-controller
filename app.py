@@ -1,4 +1,6 @@
 import json
+import logging
+
 from Key import Key
 from flask_cors import CORS
 from flask import Flask, request, render_template, make_response, jsonify
@@ -6,9 +8,24 @@ from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 from flask_socketio import SocketIO, emit
 
+
+class SocketIOHandler(logging.Handler):
+    def emit(self, record):
+        log_entry = self.format(record)
+        socketio.emit('logs', log_entry)
+
+
 app = Flask(__name__, static_folder=f'./webapp/dist/')
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+logger = logging.getLogger('BingXBot')
+socketio_handler = SocketIOHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+socketio_handler.setFormatter(formatter)
+socketio_handler.setLevel(logging.INFO)
+logger.addHandler(socketio_handler)
+
 
 
 @socketio.on('connect')
@@ -22,6 +39,14 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
+
+
+@socketio.on('logs')
+def handle_logs():
+    print('Client Logging')
+    with open('logs.log', 'r') as f:
+        logs = f.readlines()[-1]
+    emit('logs', logs)
 
 
 @socketio.on('message')
