@@ -45,6 +45,7 @@
   <div
       class="template__code-content_container"
       @click="copyTemplateToClipboard"
+      @mouseover.once="displayQuantityInfo"
   >
     <NCard class="template__code-content_card">
       <NCode
@@ -55,12 +56,23 @@
     </NCard>
 
   </div>
-
+  <div class="endpoints__endpoint-content_container">
+      <div class="endpoints__endpoint-content_content">
+        <code class="endpoints__endpoint-content_route">
+          POST ->
+        </code>
+        <code @click="copyEndpointToClipboard($event)">
+          {{endpoints.perpetualTrade}}
+        </code>
+      </div>
+  </div>
 </template>
 
 <script setup>
-import {NSpace, NCard, NRadioGroup, NRadioButton, NCode, useMessage} from "naive-ui";
-import {computed, reactive, ref} from "vue";
+import {NSpace, NCard, NRadioGroup, NRadioButton, NCode, NIcon, useMessage} from "naive-ui";
+import {computed, h, reactive, ref} from "vue";
+import {hostname} from "../hostname.js";
+import { CashOutline } from '@vicons/ionicons5'
 
 
 
@@ -83,6 +95,11 @@ const test = computed(() => {
  }`
 })
 
+const endpoints = reactive({
+  perpetualTrade: `${hostname}/perpetual/trade/`,
+  keys: `${hostname}/keys/`
+})
+
 const copyTemplateToClipboard = async function () {
   if (position.action == null || position.side == null || position.use == null) {
     message.error('Copy failed. Please select all fields')
@@ -91,6 +108,18 @@ const copyTemplateToClipboard = async function () {
   const code = document.querySelector('.template__code-content_content').innerText;
   await navigator.clipboard.writeText(code)
   message.success('Template copied to clipboard')
+}
+
+const copyEndpointToClipboard = async function (event) {
+  const code = event.target.innerText;
+  await navigator.clipboard.writeText(code)
+  message.success('Endpoint copied to clipboard')
+}
+
+const displayQuantityInfo = function () {
+  message.success('quantity: USDT', {
+          icon: () => h(NIcon, null, { default: () => h(CashOutline) })
+        })
 };
 
 </script>
@@ -98,7 +127,8 @@ const copyTemplateToClipboard = async function () {
 <style scoped>
 .template__code-content_container {
 
-  margin: 40px 0px;
+  margin-top: 29px;
+  margin-bottom: 24px;
   padding: 0px 110px;
 
 }
@@ -109,4 +139,16 @@ const copyTemplateToClipboard = async function () {
 .template__code-content_content {
   text-align: start;
 }
+
+.endpoints__endpoint-content_container {
+  margin-bottom: 5px;
+}
+
+.endpoints__endpoint-content_content {
+  color: rgba(256,256,256,0.4);
+}
+.endpoints__endpoint-content_route {
+  color: #d19a66;
+}
+
 </style>

@@ -6,6 +6,14 @@ from logger import logger
 from Cache import Cache
 
 
+def _set_split_symbol(symbol: str, quote: str = 'USDT'):
+    symbol_length = len(symbol)
+    quote_length = len(quote)
+    middle = symbol_length - quote_length
+
+    return symbol[:middle] + "-" + symbol[middle:]
+
+
 class PerpetualService:
     open_orders = []
 
@@ -19,7 +27,7 @@ class PerpetualService:
                  margin: str = None,
                  leverage: int = 1):
         self.client = client
-        self.symbol = self._set_split_symbol(symbol)
+        self.symbol = _set_split_symbol(symbol)
         self.side = side
         self.action = action
         self.trade_type = trade_type
@@ -28,13 +36,6 @@ class PerpetualService:
         self.margin = margin
         self.leverage = leverage
         self.position_side = "Long" if self.side == 'Bid' else 'Short'
-
-    def _set_split_symbol(self, symbol: str, quote: str = 'USDT'):
-        symbol_length = len(symbol)
-        quote_length = len(quote)
-        middle = symbol_length - quote_length
-
-        return symbol[:middle] + "-" + symbol[middle:]
 
     def _set_entrust_volume(self, quantity: float):
         response = self.client.latest_price(self.symbol)

@@ -5,14 +5,12 @@ import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
 import javascript from 'highlight.js/lib/languages/javascript'
 import BoardContainer from "./components/Boards/BoardContainer.vue";
-import {onMounted, ref} from "vue";
 
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('javascript', javascript)
 
 
 /* TODO: -
-         - add hover to say that quantity is always usdt
          - fix up python files
          -fix up log lines
 * */

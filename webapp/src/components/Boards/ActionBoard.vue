@@ -17,22 +17,15 @@
 </NTabPane>
     <NTabPane
         class="action-board-tabs__tab"
-        name="endpoints"
-        tab="Endpoints"
-    >
-      <Endpoints />
-    </NTabPane>
-    <NTabPane
-        class="action-board-tabs__tab"
-        name="log"
-        tab="Log"
+        name="logs"
+        tab="Logs"
         display-directive="show"
     >
       <Log />
     </NTabPane>
     <NTabPane
         class="action-board-tabs__tab"
-        name="keys"
+        name="api-keys"
         tab="API Keys"
     >
       <KeyForm :is-to-update="true"/>
@@ -45,12 +38,11 @@ import {NTabPane, NTabs} from "naive-ui";
 import KeyForm from "../Actions/KeyForm.vue";
 import Template from "../Actions/Template.vue";
 import Log from "../Actions/Log.vue";
-import Endpoints from "../Actions/Endpoints.vue";
-import {onBeforeMount, onMounted, ref} from "vue";
+import {onBeforeMount, ref} from "vue";
 
-const defaultTab = ref('templates')
+const defaultTab = ref('logs')
 const getCurrentTab = function (event) {
-  const currentTab = event.target.innerText.toLowerCase()
+  const currentTab = event.target.innerText.toLowerCase().replaceAll(' ','-')
   saveCurrentTab(currentTab)
 };
 
@@ -60,7 +52,9 @@ const saveCurrentTab = function (tabName) {
 
 onBeforeMount(() => {
   const currentTab = localStorage.getItem('currentTab')
-  console.log(currentTab)
+  if (!currentTab) {
+    localStorage.setItem('currentTab','templates')
+  }
   defaultTab.value = currentTab ? currentTab : defaultTab.value
 })
 </script>

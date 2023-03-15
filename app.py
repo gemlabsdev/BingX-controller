@@ -27,7 +27,6 @@ socketio_handler.setLevel(logging.INFO)
 logger.addHandler(socketio_handler)
 
 
-
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
@@ -66,21 +65,23 @@ def send_assets(path):
 
 
 @app.route('/keys', methods=['POST'])
-def override_keys():
+def set_keys():
+    firstTime = Key.public_key == "" or Key.secret_key == ""
     data = json.loads(request.data)
     Key.public_key = data['public']
     Key.secret_key = data['private']
+    logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
     response.headers['Content-Type'] = "application/json"
 
     return response, 200
 
 
-@app.route('/keys', methods=['GET'])
-def view_keys():
-    keys = {'public': Key.public_key,
-            'secret': Key.secret_key}
-    return json.dumps(keys)
+# @app.route('/keys', methods=['GET'])
+# def view_keys():
+#     keys = {'public': Key.public_key,
+#             'secret': Key.secret_key}
+#     return json.dumps(keys)
 
 
 @app.route('/perpetual/trade', methods=['POST'])
