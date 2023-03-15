@@ -133,3 +133,87 @@ INFO - 2023-03-14 17:32:42,902 - -----------------REQUEST-FINISHED--------------
 2023-03-14 17:53:49,886 - INFO - CLOSE-POSITION: DONE IN 456ms
 2023-03-14 17:53:49,887 - INFO - Removing BTC-USDT Long position from cache
 2023-03-14 17:53:49,887 - INFO - ----------------REQUEST-FINISHED----------------------
+2023-03-15 05:36:54,327 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:36:54,327 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:36:54,328 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:36:54,655 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:36:54,656 - INFO - No open positions for BTC-USDT
+2023-03-15 05:36:54,656 - INFO - CLOSE-POSITION: DONE IN 329ms
+2023-03-15 05:36:54,656 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:37:00,338 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:37:00,338 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:37:00,338 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:37:01,150 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:37:01,151 - INFO - No open positions for BTC-USDT
+2023-03-15 05:37:01,151 - INFO - CLOSE-POSITION: DONE IN 813ms
+2023-03-15 05:37:01,151 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:37:06,177 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:37:06,179 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:37:06,179 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:37:06,530 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:37:06,531 - INFO - No open positions for BTC-USDT
+2023-03-15 05:37:06,531 - INFO - CLOSE-POSITION: DONE IN 354ms
+2023-03-15 05:37:06,532 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:39:22,119 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:39:22,120 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:39:22,121 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:39:22,448 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:39:22,448 - INFO - No open positions for BTC-USDT
+2023-03-15 05:39:22,448 - INFO - CLOSE-POSITION: DONE IN 328ms
+2023-03-15 05:39:22,449 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:39:31,143 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:39:31,144 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:39:31,144 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:39:31,484 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:39:31,485 - INFO - No open positions for BTC-USDT
+2023-03-15 05:39:31,485 - INFO - CLOSE-POSITION: DONE IN 341ms
+2023-03-15 05:39:31,485 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:39:43,316 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:39:43,317 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:39:43,317 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:39:43,668 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:39:43,668 - INFO - No open positions for BTC-USDT
+2023-03-15 05:39:43,669 - INFO - CLOSE-POSITION: DONE IN 352ms
+2023-03-15 05:39:43,669 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:39:48,192 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:39:48,193 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:39:48,193 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:39:48,542 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:39:48,543 - INFO - No open positions for BTC-USDT
+2023-03-15 05:39:48,543 - INFO - CLOSE-POSITION: DONE IN 350ms
+2023-03-15 05:39:48,543 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:41:44,062 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:41:44,064 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:41:44,064 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:41:44,385 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:41:44,386 - INFO - No open positions for BTC-USDT
+2023-03-15 05:41:44,386 - INFO - CLOSE-POSITION: DONE IN 323ms
+2023-03-15 05:41:44,386 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:44:12,817 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:44:12,818 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:44:12,818 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:44:13,611 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:44:13,611 - INFO - No open positions for BTC-USDT
+2023-03-15 05:44:13,612 - INFO - CLOSE-POSITION: DONE IN 794ms
+2023-03-15 05:44:13,612 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:44:54,628 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:44:54,629 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:44:54,629 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:44:54,967 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:44:54,967 - INFO - No open positions for BTC-USDT
+2023-03-15 05:44:54,968 - INFO - CLOSE-POSITION: DONE IN 339ms
+2023-03-15 05:44:54,968 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:44:56,597 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:44:56,598 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:44:56,598 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:44:56,912 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:44:56,913 - INFO - No open positions for BTC-USDT
+2023-03-15 05:44:56,913 - INFO - CLOSE-POSITION: DONE IN 316ms
+2023-03-15 05:44:56,913 - INFO - -----------------REQUEST-FINISHED-----------------------
+2023-03-15 05:46:39,919 - INFO - ---------------------CLOSE-POSITION---------------------
+2023-03-15 05:46:39,920 - INFO - No cached positions for BTC-USDT
+2023-03-15 05:46:39,920 - INFO - Requesting open BTC-USDT positions from BingX
+2023-03-15 05:46:40,764 - INFO - Adding BTC-USDT Long position to cache
+2023-03-15 05:46:40,765 - INFO - No open positions for BTC-USDT
+2023-03-15 05:46:40,765 - INFO - CLOSE-POSITION: DONE IN 846ms
+2023-03-15 05:46:40,766 - INFO - -----------------REQUEST-FINISHED-----------------------

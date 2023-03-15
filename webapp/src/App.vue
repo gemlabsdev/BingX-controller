@@ -11,7 +11,7 @@ hljs.registerLanguage('json', json)
 hljs.registerLanguage('javascript', javascript)
 
 
-/* TODO: - scroll to bottom on the logs display
+/* TODO: -
          - add hover to say that quantity is always usdt
          - fix up python files
          -fix up log lines

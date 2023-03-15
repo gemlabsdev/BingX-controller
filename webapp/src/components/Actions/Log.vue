@@ -1,6 +1,6 @@
 <template>
   <div class="logs__log-content_container">
-    <NCard class="logs__log-content_card" @click.once="scrollToLogBottom">
+    <NCard class="logs__log-content_card" @click="scrollToLogBottom">
       <div class="logs__log-content_card-border">
         <NCode
           class="logs__log-content_content"
@@ -16,7 +16,7 @@
 <script setup>
 import {NButton, NCard, NCode, useMessage} from "naive-ui";
 import io from 'socket.io-client'
-
+import {hostname} from "../hostname.js";
 import {computed, onMounted, onUnmounted, reactive, ref} from "vue";
 
 const activity = ref(`
@@ -66,42 +66,41 @@ INFO - 2023-03-14 09:01:12,750 - -----------------REQUEST-FINISHED--------------
 `)
 const message = useMessage()
 const state = reactive({
-  messageCount: 0,
-  logs: '',
+    messageCount: 0,
+    logs: '',
 })
 const upToDateLogs = computed(() => {
   return state.logs
 } )
 
-const scrollToLogBottom = () => {
-    const element = document.querySelector('.logs__log-content_card');
+const scrollToLogBottom = async function () {
+    const element = await document.querySelector('.logs__log-content_card-border');
     element.scrollTop = element.scrollHeight;
 }
 
 const copyLogsToClipboard = async function () {
-  console.log('click')
-  const code = document.querySelector('.logs__log-content_card').innerText;
+  const code = document.querySelector('.logs__log-content_card-border').innerText;
   await navigator.clipboard.writeText(code)
   message.success('Template copied to clipboard')
 };
 
-const socket = io('http://127.0.0.1:8000/');
+const socket = io(`${hostname}/`);
 
 const handleConnect = () => {
   console.log('Connected to server');
-  scrollToLogBottom()
 };
 const handleDisconnect = () => {
   console.log('Disconnected from server');
 };
 
-const handleLogging = function (logs)  {
+const handleLogging = async function (logs)  {
   state.logs += state.messageCount === 0 ? logs : logs + '\n'
   state.messageCount += 1
-  scrollToLogBottom()
+  await scrollToLogBottom()
 }
 
 onMounted(() => {
+  scrollToLogBottom()
   socket.on('connect', handleConnect);
   socket.on('disconnect', handleDisconnect);
   socket.on('logs', logs => handleLogging(logs))
