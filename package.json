@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "cd webapp && vite build",
+    "start": "cd webapp && vite preview"
   },
   "dependencies": {
     "@vicons/ionicons5": "^0.12.0",
