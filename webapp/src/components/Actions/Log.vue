@@ -87,9 +87,16 @@ onUnmounted(() => {
 
 .logs__log-content_card-border {
   overflow: scroll;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
   min-height: 246px;
   max-height: 246px;
   min-width: 750px;
+}
+
+.logs__log-content_card-border::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
 }
 
 .logs__log-content_content {
