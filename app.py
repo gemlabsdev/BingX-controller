@@ -7,6 +7,7 @@ from flask import Flask, request, render_template, make_response, jsonify
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 from flask_socketio import SocketIO, emit
+from Cache import Cache
 
 
 class SocketIOHandler(logging.Handler):
@@ -77,13 +78,6 @@ def set_keys():
     return response, 200
 
 
-# @app.route('/keys', methods=['GET'])
-# def view_keys():
-#     keys = {'public': Key.public_key,
-#             'secret': Key.secret_key}
-#     return json.dumps(keys)
-
-
 @app.route('/perpetual/trade', methods=['POST'])
 def perpetual_order():
     client = Perpetual(Key.public_key, Key.secret_key)
@@ -93,11 +87,18 @@ def perpetual_order():
                                side=data['side'],
                                action=data['action'],
                                quantity=data['quantity'],
-                               trade_type=data['trade_type'])
+                               trade_type=data['trade_type'],
+                               leverage=data['leverage'] if 'leverage' in data else 1)
     if data['action'] == 'Open':
         return service.open_trade()
     if data['action'] == 'Close':
         return service.close_trade()
+
+
+@app.route('/perpetual/dump', methods=['POST'])
+def clear_cache():
+    Cache.clear_cache()
+    return 'CACHE CLEARED'
 
 
 @app.route('/perpetual/leverage', methods=['POST'])
