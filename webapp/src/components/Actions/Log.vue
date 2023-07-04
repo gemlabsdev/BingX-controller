@@ -3,6 +3,7 @@
     <NCard class="logs__log-content_card" @click="scrollToLogBottom">
       <div class="logs__log-content_card-border">
         <NCode
+          :word-wrap="true"
           class="logs__log-content_content"
           :code="upToDateLogs === '' ? activity : upToDateLogs"
           language="json"
@@ -20,7 +21,7 @@ import {hostname} from "../hostname.js";
 import {computed, onMounted, onUnmounted, reactive, ref} from "vue";
 
 const date = new Date(Date.now())
-const activity = ref(`ERROR - ${date.toISOString()} - Connection with the websocket was could not be established`)
+const activity = ref(`ERROR - ${date.toISOString()} - Connection with the websocket could not be established`)
 const message = useMessage()
 const state = reactive({
     messageCount: 0,
@@ -86,12 +87,14 @@ onUnmounted(() => {
 }
 
 .logs__log-content_card-border {
-  overflow: scroll;
+  overflow-x: hidden;
+  overflow-y: scroll;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
   min-height: 246px;
   max-height: 246px;
-  min-width: 750px;
+  width: 755px;
+  overflow-wrap: break-word;
 }
 
 .logs__log-content_card-border::-webkit-scrollbar { /* WebKit */
