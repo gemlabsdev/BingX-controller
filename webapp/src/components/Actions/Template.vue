@@ -2,7 +2,7 @@
   <NSpace vertical>
     <NRadioGroup>
       <NSpace>
-        <NRadioGroup v-model:value="position.action" name="direction">
+        <NRadioGroup ref="direction" v-model:value="position.action" name="direction">
           <NRadioButton
             value="Open"
             label="Open"
@@ -50,7 +50,7 @@
     <NCard class="template__code-content_card">
       <NCode
       class="template__code-content_content"
-      :code="test"
+      :code="payload"
       language="json"
    />
     </NCard>
@@ -75,7 +75,7 @@ import {hostname} from "../hostname.js";
 import { CashOutline } from '@vicons/ionicons5'
 
 
-
+const direction = ref(null)
 const message = useMessage()
 const ticker = '{{ticker}}'
 const position = reactive({
@@ -84,16 +84,17 @@ const position = reactive({
                                   use: null
                                 })
 
-const test = computed(() => {
-  return `
-{
-    "symbol": "${position.use}",
-    "action": "${position.action}",
-    "side": "${position.side}",
-    "trade_type": "Market",
-    "leverage": 1,
-    "quantity": 10.0
- }`
+const payload = computed(() => {
+  const message = {
+    symbol: position.use,
+    action: position.action,
+    side: position.side,
+    trade_type: "Market",
+    quantity: 10.0
+  }
+  if (direction.value.value !== 'Close') message.leverage = 1
+
+  return JSON.stringify(message, null, 2)
 })
 
 const endpoints = reactive({
