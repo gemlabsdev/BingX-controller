@@ -9,12 +9,6 @@ import BoardContainer from "./components/Boards/BoardContainer.vue";
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('javascript', javascript)
 
-
-/* TODO: -
-         - fix up python files
-         -fix up log lines
-* */
-
 </script>
 
 <template>
