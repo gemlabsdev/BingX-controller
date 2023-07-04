@@ -91,6 +91,7 @@ const test = computed(() => {
     "action": "${position.action}",
     "side": "${position.side}",
     "trade_type": "Market",
+    "leverage": 1,
     "quantity": 10.0
  }`
 })

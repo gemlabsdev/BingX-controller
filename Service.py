@@ -121,7 +121,7 @@ class PerpetualService:
             start_time_open_close = time.time()
             closed_trade = self.close_trade(is_only_close=False)
             if closed_trade.get('status') == 'SAME_DIRECTION':
-                logger.warn(f'REJECTED: A {self.position_side} position for {self.symbol} is already in place. '
+                logger.warn(f'A {self.position_side} position for {self.symbol} is already in place. '
                             f'Close position to place a new one')
                 logger.info(f'-----------------REQUEST-FINISHED-----------------------')
                 response = json.dumps({'status': 'REJECTED'})
