@@ -142,7 +142,6 @@ class PerpetualService:
             logger.info(f'---------------------CACHE-POSITION---------------------')
             start_time_cache = time.time()
             position = self.get_api_open_position()
-            print(position)
             self.add_position_to_cache(position['positionId'], position['positionSide'])
             logger.info(f'CACHE-POSITION: DONE IN {int((time.time() - start_time_cache) * 1000)}ms')
             logger.info(f'-----------------REQUEST-FINISHED-----------------------')
@@ -165,7 +164,7 @@ class PerpetualService:
                 logger.info(f'-----------------CLOSE-EXISTING-POSITION----------------')
             position = self.get_open_position()
             if position is None or not any(Cache.open_positions):
-                logger.info(f'No open positions for {self.symbol}')
+                logger.info(f'No cached open positions for {self.symbol}')
                 logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
                 logger.info(f'-----------------REQUEST-FINISHED-----------------------')
                 response = {'status': 'NOTHING_TO_CLOSE'}
@@ -178,11 +177,9 @@ class PerpetualService:
                 logger.warn(f'Open position found - Only 1 open position per symbol allowed')
             logger.info(f'Closing {position_side.upper()} position for {self.symbol}')
             response = self.client.close_position(symbol=self.symbol, positionId=position_id)
-            print(response)
             logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
             self.remove_position_from_cache()
             logger.info(f'----------------REQUEST-FINISHED----------------------')
-            print(Cache.symbol_leverage)
             return response
 
         except ClientError as error:
