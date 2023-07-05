@@ -132,11 +132,14 @@ const displayQuantityInfo = function () {
   margin-top: 29px;
   margin-bottom: 24px;
   padding: 0px 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
 }
 .template__code-content_card {
   border: 1px solid rgba(256,256,256,0.4);
-  max-width: 228px;
+  max-width: 278px;
 }
 
 .template__code-content_content {
