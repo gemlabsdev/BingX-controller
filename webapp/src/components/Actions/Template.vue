@@ -136,6 +136,7 @@ const displayQuantityInfo = function () {
 }
 .template__code-content_card {
   border: 1px solid rgba(256,256,256,0.4);
+  max-width: 228px;
 }
 
 .template__code-content_content {
