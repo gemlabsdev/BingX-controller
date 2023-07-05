@@ -3,7 +3,7 @@ import logging
 
 from Key import Key
 from flask_cors import CORS
-from flask import Flask, request, render_template, make_response, jsonify
+from flask import Flask, request, render_template, make_response, jsonify, g
 from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 from flask_socketio import SocketIO, emit
@@ -26,6 +26,13 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 socketio_handler.setFormatter(formatter)
 socketio_handler.setLevel(logging.INFO)
 logger.addHandler(socketio_handler)
+
+
+def get_client():
+    if 'client' not in g:
+        g.client = Perpetual(Key.public_key, Key.secret_key)
+
+    return g.client
 
 
 @socketio.on('connect')
@@ -80,7 +87,7 @@ def set_keys():
 
 @app.route('/perpetual/trade', methods=['POST'])
 def perpetual_order():
-    client = Perpetual(Key.public_key, Key.secret_key)
+    client = get_client()
     data = json.loads(request.data)
     service = PerpetualService(client=client,
                                symbol=data['symbol'],
@@ -103,7 +110,7 @@ def clear_cache():
 
 @app.route('/perpetual/leverage', methods=['POST'])
 def change_leverage():
-    client = Perpetual(Key.public_key, Key.secret_key)
+    client = get_client()
     data = json.loads(request.data)
     service = PerpetualService(client=client,
                                symbol=data['symbol'],
@@ -111,6 +118,14 @@ def change_leverage():
     service.set_leverage()
     return f'{{"symbol":"{service.symbol}", "leverage":"{service.leverage}"}}'
 
+@app.route('/perpetual/positions', methods=['POST'])
+def get_open_positions():
+    client = get_client()
+    data = json.loads(request.data)
+    service = PerpetualService(client=client,
+                               symbol=data['symbol'])
+    response = service.get_open_positions_api()
+    return response
 
 @app.route('/logs', methods=['GET'])
 def get_logs():
