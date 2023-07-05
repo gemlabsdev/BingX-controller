@@ -94,7 +94,7 @@ const payload = computed(() => {
   }
   if (direction.value.value !== 'Close') message.leverage = 1
 
-  return JSON.stringify(message, null, 2)
+  return JSON.stringify(message, null, 4)
 })
 
 const endpoints = reactive({
