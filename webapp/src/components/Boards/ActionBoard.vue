@@ -40,7 +40,7 @@ import Template from "../Actions/Template.vue";
 import Log from "../Actions/Log.vue";
 import {onBeforeMount, ref} from "vue";
 
-const defaultTab = ref('logs')
+const defaultTab = ref('')
 const getCurrentTab = function (event) {
   const currentTab = event.target.innerText.toLowerCase().replaceAll(' ','-')
   saveCurrentTab(currentTab)
@@ -50,11 +50,13 @@ const saveCurrentTab = function (tabName) {
   localStorage.setItem('currentTab',tabName)
 };
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   const currentTab = localStorage.getItem('currentTab')
   if (!currentTab) {
-    localStorage.setItem('currentTab','templates')
+    defaultTab.value = 'logs'
+    return
   }
+  console.log(currentTab)
   defaultTab.value = currentTab ? currentTab : defaultTab.value
 })
 </script>
