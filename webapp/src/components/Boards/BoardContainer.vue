@@ -1,9 +1,11 @@
 <template>
-  <NCard class="board-container__card">
+  <NCard
+       v-show="!isLoading"
+      class="board-container__card">
       <KeyForm
           :isToUpdate="false"
           v-show="isFirstLogin"
-          @submit="toggleFirstLogIn"/>
+          @submit="isReturningUser"/>
       <ActionBoard v-show="!isFirstLogin" />
   </NCard>
     <NButton
@@ -18,30 +20,33 @@
 <script setup>
 import KeyForm from "../Actions/KeyForm.vue";
 import {NCard, NButton, useMessage} from "naive-ui";
-import {onMounted, ref} from "vue";
+import {onBeforeMount, onMounted, ref} from "vue";
 import ActionBoard from "./ActionBoard.vue";
 import {hostname} from "../hostname.js";
 
 // const isFirstLogin = ref(false)
 //prod
+const emit = defineEmits(['mounted'])
 const isFirstLogin = ref(true)
+const isLoading = ref(true)
 const message = useMessage()
 
-const toggleFirstLogIn = function () {
-  const hasRegisteredKeys = localStorage.getItem("hasRegisteredKeys")
-  if (!hasRegisteredKeys) {
-    localStorage.setItem("hasRegisteredKeys","true")
-  }
-  isReturningUser()
-
-};
-
-const isReturningUser = function () {
-    const hasRegisteredKeys = localStorage.getItem("hasRegisteredKeys")
-    if (hasRegisteredKeys === "true") {
+const isReturningUser = async function () {
+    const userStatus = await getUserStatus()
+    if (userStatus !== "NEW_USER") {
       isFirstLogin.value = false
     }
 };
+
+async function getUserStatus() {
+  const response = await fetch(`${hostname}/user`, {
+    method: 'GET',
+  })
+  const data = await response.json()
+
+  return data.user
+
+}
 
 async function clearCacheHandler() {
   try{
@@ -54,7 +59,7 @@ async function clearCacheHandler() {
   }
 }
 
-onMounted(() => {
+onBeforeMount(async () => {
   const cacheButton = document.querySelector('.clear-cache')
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Shift') {
@@ -71,7 +76,12 @@ onMounted(() => {
 
     }
   })
-  isReturningUser()
+  await isReturningUser()
+  isLoading.value = false
+})
+
+onMounted(() => {
+    emit('mounted')
 })
 
 

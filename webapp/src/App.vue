@@ -5,21 +5,27 @@ import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
 import javascript from 'highlight.js/lib/languages/javascript'
 import BoardContainer from "./components/Boards/BoardContainer.vue";
+import {ref} from "vue";
 
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('javascript', javascript)
 
+const isLoading = ref(true)
+
+const showContent = function () {
+  isLoading.value = false
+}
 </script>
 
 <template>
   <NConfigProvider :theme="darkTheme" :hljs="hljs">
     <NMessageProvider>
-      <div>
+      <div v-if="!isLoading">
         <a href="https://bingx.com/en-us/" target="_blank">
           <img src="./assets/bingx.svg" class="logo" alt="BingX" />
         </a>
       </div>
-    <BoardContainer />
+      <BoardContainer @mounted="showContent" />
     </NMessageProvider>
   </NConfigProvider>
 
