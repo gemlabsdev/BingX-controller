@@ -21,7 +21,7 @@ import {hostname} from "../hostname.js";
 import {computed, onMounted, onUnmounted, reactive, ref} from "vue";
 
 const date = new Date(Date.now())
-const activity = ref(`ERROR - ${date.toISOString()} - Connection with the websocket could not be established`)
+const activity = ref('')
 const message = useMessage()
 const state = reactive({
     messageCount: 0,
@@ -62,6 +62,12 @@ onMounted(() => {
   socket.on('connect', handleConnect);
   socket.on('disconnect', handleDisconnect);
   socket.on('logs', logs => handleLogging(logs))
+  activity.value = `INFO - ${date.toISOString()} - Connecting to websocket...`
+
+  setTimeout(() => {
+      activity.value = `ERROR - ${date.toISOString()} - Connection with the websocket could not be established`
+      }, 500
+  )
 });
 
 onUnmounted(() => {
