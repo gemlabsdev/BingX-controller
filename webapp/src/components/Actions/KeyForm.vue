@@ -6,7 +6,7 @@
 
   <n-form-item
       ref="publicKey"
-      label="Public"
+      label="Public Key"
       path="public">
       <n-input
           @keydown.enter.prevent
@@ -14,11 +14,22 @@
   </n-form-item>
   <n-form-item
       ref="privateKey"
-      label="Private"
+      label="Private Key"
       path="private">
       <n-input
         type="password"
         v-model:value="keys.private"
+        @keydown.enter.prevent
+      />
+  </n-form-item>
+  <n-form-item
+      v-if="isToUpdate"
+      ref="privateKeyOld"
+      label="Current Private Key"
+      path="privateOld">
+      <n-input
+        type="password"
+        v-model:value="keys.private_old"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -46,8 +57,9 @@ const title = ref(props.isToUpdate ? 'Update API keys' : 'Load API keys')
 const apiKeys = ref(null)
 const message = useMessage()
 const keys = ref({
-  public: null,
-  private: null
+  public: '',
+  private: '',
+  private_old: ''
 })
 
 const rules = {
@@ -83,6 +95,10 @@ async function handleValidation(e) {
             if (!errors) {
               try {
                 const status = await postKeys();
+                if (status === 'WRONG_PRIVATE_KEY') {
+                  message.error("Your current private key is incorrect. Please try again")
+                  return
+                }
                 if (status !== 'SUCCESS') {
                   message.error("An error has occurred. Please try again")
                   return

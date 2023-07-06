@@ -71,11 +71,27 @@ def index():
 def send_assets(path):
     return app.send_static_file(f'assets/{path}')
 
+@app.route('/user', methods=['GET'])
+def get_key_status():
+    firstTime = Key.public_key == "" or Key.secret_key == ""
+    user = 'NEW_USER' if firstTime else 'CURRENT_USER'
+    response = make_response(jsonify({'user': user}))
+    response.headers['Content-Type'] = "application/json"
+
+    return response, 200
 
 @app.route('/keys', methods=['POST'])
 def set_keys():
     firstTime = Key.public_key == "" or Key.secret_key == ""
     data = json.loads(request.data)
+    if not firstTime:
+        if data['private_old'] != Key.secret_key:
+            response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
+            response.headers['Content-Type'] = "application/json"
+            logger.info(f'API Keys were not updated. Wrong Private Key.')
+
+            return response, 403
+
     Key.public_key = data['public']
     Key.secret_key = data['private']
     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
