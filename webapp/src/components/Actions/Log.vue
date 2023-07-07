@@ -97,8 +97,8 @@ onUnmounted(() => {
   overflow-y: scroll;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  min-height: 246px;
-  max-height: 246px;
+  min-height: 267px;
+  max-height: 267px;
   width: 755px;
   overflow-wrap: break-word;
 }

@@ -113,7 +113,7 @@ onMounted(() => {
 
 <style scoped>
 .board-container__card {
-  min-height: 415px;
+  min-height: 435px;
 }
 
 .hidden-buttons-container {
