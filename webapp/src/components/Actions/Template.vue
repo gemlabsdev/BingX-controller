@@ -115,7 +115,7 @@ const copyTemplateToClipboard = async function () {
 const copyEndpointToClipboard = async function (event) {
   const code = event.target.innerText;
   await navigator.clipboard.writeText(code)
-  message.success('Endpoint copied to clipboard')
+  message.success('URL copied to clipboard')
 }
 
 const displayQuantityInfo = function () {

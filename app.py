@@ -71,6 +71,7 @@ def index():
 def send_assets(path):
     return app.send_static_file(f'assets/{path}')
 
+
 @app.route('/user', methods=['GET'])
 def get_key_status():
     firstTime = Key.public_key == "" or Key.secret_key == ""
@@ -79,6 +80,7 @@ def get_key_status():
     response.headers['Content-Type'] = "application/json"
 
     return response, 200
+
 
 @app.route('/keys', methods=['POST'])
 def set_keys():
@@ -134,6 +136,7 @@ def change_leverage():
     service.set_leverage()
     return f'{{"symbol":"{service.symbol}", "leverage":"{service.leverage}"}}'
 
+
 @app.route('/perpetual/positions', methods=['POST'])
 def get_open_positions():
     client = get_client()
@@ -143,11 +146,19 @@ def get_open_positions():
     response = service.get_open_positions_api()
     return response
 
+
 @app.route('/logs', methods=['GET'])
 def get_logs():
     with open('logs.log', 'r') as f:
         logs = f.read()
     return logs
+
+
+@app.route('/logs', methods=['DELETE'])
+def delete_logs():
+    with open('logs.log', 'w') as f:
+        f.close()
+    return {'status': 'DELETED'}
 
 
 if __name__ == '__main__':

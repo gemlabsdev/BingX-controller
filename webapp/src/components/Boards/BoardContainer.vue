@@ -8,13 +8,23 @@
           @submit="isReturningUser"/>
       <ActionBoard v-show="!isFirstLogin" />
   </NCard>
+  <NButtonGroup class="hidden-buttons-container">
     <NButton
+      class="hidden-button"
       type="error"
       ghost
-      @click="clearCacheHandler"
-      class="clear-cache">
+      @click="clearCacheHandler">
     Clear Cache
   </NButton>
+    <NButton
+      class="hidden-button"
+      type="error"
+      ghost
+      @click="clearLogsHandler">
+    Clear Logs
+  </NButton>
+  </NButtonGroup>
+
 </template>
 
 <script setup>
@@ -59,8 +69,28 @@ async function clearCacheHandler() {
   }
 }
 
+async function clearLogsHandler() {
+  try{
+  await fetch(`${hostname}/logs`, {
+    method: 'DELETE',
+  })
+      message.success('Log file has being cleared')
+      setTimeout(() => {
+        location.reload()
+      }, 500)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 onBeforeMount(async () => {
-  const cacheButton = document.querySelector('.clear-cache')
+  await isReturningUser()
+  isLoading.value = false
+})
+
+onMounted(() => {
+  emit('mounted')
+  const cacheButton = document.querySelector('.hidden-buttons-container')
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Shift') {
       cacheButton.style.visibility = 'visible'
@@ -76,12 +106,6 @@ onBeforeMount(async () => {
 
     }
   })
-  await isReturningUser()
-  isLoading.value = false
-})
-
-onMounted(() => {
-    emit('mounted')
 })
 
 
@@ -92,11 +116,19 @@ onMounted(() => {
   min-height: 415px;
 }
 
-.clear-cache {
+.hidden-buttons-container {
   margin: 20px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.5s ease;
+}
 
+.hidden-button {
+  margin: 0 10px;
+  width: auto;
 }
 </style>

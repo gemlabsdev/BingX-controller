@@ -65,7 +65,7 @@ onMounted(() => {
   activity.value = `INFO - ${date.toISOString()} - Connecting to websocket...`
 
   setTimeout(() => {
-      activity.value = `ERROR - ${date.toISOString()} - Connection with the websocket could not be established`
+      activity.value = `INFO - ${date.toISOString()} - Welcome to the BingX Signal Bot`
       }, 500
   )
 });
