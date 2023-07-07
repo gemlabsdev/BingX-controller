@@ -52,7 +52,7 @@ const saveCurrentTab = function (tabName) {
 
 onBeforeMount(async () => {
   const currentTab = localStorage.getItem('currentTab')
-  if (!currentTab) {
+  if (!currentTab || currentTab === 'submit') {
     defaultTab.value = 'logs'
     return
   }
