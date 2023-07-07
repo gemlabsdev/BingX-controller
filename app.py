@@ -1,6 +1,8 @@
 import json
 import logging
-
+import eventlet
+from eventlet import wsgi
+from eventlet.green import socket
 from Key import Key
 from flask_cors import CORS
 from flask import Flask, request, render_template, make_response, jsonify, g
@@ -16,7 +18,7 @@ class SocketIOHandler(logging.Handler):
         socketio.emit('logs', log_entry)
 
 
-app = Flask(__name__, static_folder=f'./webapp/dist/')
+app = Flask(__name__, static_folder='./webapp/dist/')
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -162,7 +164,6 @@ def delete_logs():
 
 
 if __name__ == '__main__':
-    from waitress import serve
-
-    socketio.run(app)
-    serve(app, host='0.0.0.0', port=3000)
+    eventlet.monkey_patch(all=True)
+    server = eventlet.listen(('0.0.0.0', 3000))
+    wsgi.server(server, app)
