@@ -1,6 +1,8 @@
 # BingX-controller
 A controller for routing webhook trading signals to the BingX API
 
+To run it just install the python requirements and node modules, build the frontend, and run the application using ```python app.py```
+
 ## Endpoints and request bodies
 
 <details><summary>/perpetual/trade</summary>
