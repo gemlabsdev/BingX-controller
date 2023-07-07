@@ -8,7 +8,9 @@
           @submit="isReturningUser"/>
       <ActionBoard v-show="!isFirstLogin" />
   </NCard>
-  <NButtonGroup class="hidden-buttons-container">
+  <NButtonGroup
+      v-show="!isFirstLogin"
+      class="hidden-buttons-container">
     <NButton
       class="hidden-button"
       type="error"
