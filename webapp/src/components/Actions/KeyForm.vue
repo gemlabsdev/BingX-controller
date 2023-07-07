@@ -29,7 +29,7 @@
       path="privateOld">
       <n-input
         type="password"
-        v-model:value="keys.private_old"
+        v-model:value="keys.private_current"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -37,7 +37,7 @@
     <n-button
         round
         type="primary"
-        :disabled="!keys.public || !keys.private"
+        :disabled="!keys.public || !keys.private || (isToUpdate && !keys.private_current)"
         @click="handleValidation">
       Submit
     </n-button>
@@ -59,7 +59,7 @@ const message = useMessage()
 const keys = ref({
   public: '',
   private: '',
-  private_old: ''
+  private_current: ''
 })
 
 const rules = {

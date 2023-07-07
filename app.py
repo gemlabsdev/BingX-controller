@@ -85,7 +85,7 @@ def set_keys():
     firstTime = Key.public_key == "" or Key.secret_key == ""
     data = json.loads(request.data)
     if not firstTime:
-        if data['private_old'] != Key.secret_key:
+        if data['private_current'] != Key.secret_key:
             response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
             response.headers['Content-Type'] = "application/json"
             logger.info(f'API Keys were not updated. Wrong Private Key.')
