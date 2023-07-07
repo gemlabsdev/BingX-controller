@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+
 import eventlet
 from eventlet import wsgi
 from eventlet.green import socket
@@ -165,5 +167,6 @@ def delete_logs():
 
 if __name__ == '__main__':
     eventlet.monkey_patch(all=True)
-    server = eventlet.listen(('0.0.0.0', 3000))
+    port = int(os.environ.get('PORT', 3000))
+    server = eventlet.listen(('0.0.0.0', port))
     wsgi.server(server, app)
