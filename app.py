@@ -32,9 +32,35 @@ socketio_handler.setLevel(logging.INFO)
 logger.addHandler(socketio_handler)
 
 
+@app.before_request
+def load_keys():
+    if not os.path.exists('keys.json'):
+        # Generate default keys
+        keys = {
+            'public': '',
+            'private': ''
+        }
+        with open('keys.json', 'w') as keys_file:
+            json.dump(keys, keys_file, indent=4)
+    with open('keys.json', 'r') as keys_file:
+        keys = json.loads(keys_file.read())
+        Key.public_key = keys['public']
+        Key.private_key = keys['private']
+
+
+def save_keys(public, private):
+    keys = {
+        "public": public,
+        "private": private
+    }
+    with open('keys.json', 'w') as keys_file:
+        keys = json.dumps(keys, indent=4)
+        keys_file.write(keys)
+
+
 def get_client():
     if 'client' not in g:
-        g.client = Perpetual(Key.public_key, Key.secret_key)
+        g.client = Perpetual(Key.public_key, Key.private_key)
 
     return g.client
 
@@ -78,7 +104,7 @@ def send_assets(path):
 
 @app.route('/user', methods=['GET'])
 def get_key_status():
-    firstTime = Key.public_key == "" or Key.secret_key == ""
+    firstTime = Key.public_key == "" or Key.private_key == ""
     user = 'NEW_USER' if firstTime else 'CURRENT_USER'
     response = make_response(jsonify({'user': user}))
     response.headers['Content-Type'] = "application/json"
@@ -88,10 +114,10 @@ def get_key_status():
 
 @app.route('/keys', methods=['POST'])
 def set_keys():
-    firstTime = Key.public_key == "" or Key.secret_key == ""
+    firstTime = Key.public_key == "" or Key.private_key == ""
     data = json.loads(request.data)
     if not firstTime:
-        if data['private_current'] != Key.secret_key:
+        if data['private_current'] != Key.private_key:
             response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
             response.headers['Content-Type'] = "application/json"
             logger.info(f'API Keys were not updated. Wrong Private Key.')
@@ -99,9 +125,18 @@ def set_keys():
             return response, 403
 
     Key.public_key = data['public']
-    Key.secret_key = data['private']
+    Key.private_key = data['private']
+    save_keys(Key.public_key, Key.private_key)
     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
+    response.headers['Content-Type'] = "application/json"
+
+    return response, 200
+
+
+@app.route('/keys', methods=['GET'])
+def get_keys():
+    response = make_response(jsonify({'public_key': Key.public_key, 'private_key': Key.private_key}))
     response.headers['Content-Type'] = "application/json"
 
     return response, 200
