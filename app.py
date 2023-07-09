@@ -134,14 +134,6 @@ def set_keys():
     return response, 200
 
 
-@app.route('/keys', methods=['GET'])
-def get_keys():
-    response = make_response(jsonify({'public_key': Key.public_key, 'private_key': Key.private_key}))
-    response.headers['Content-Type'] = "application/json"
-
-    return response, 200
-
-
 @app.route('/perpetual/trade', methods=['POST'])
 def perpetual_order():
     client = get_client()
