@@ -58,10 +58,11 @@ except Exception as e:
 
 
 def save_keys(public, private):
-    _keys = {
+    new_keys = {"$set": {
         "public": public,
         "private": private
-    }
+    }}
+    keys_collection.update_one({"exchange": "bingx"}, new_keys)
 
 
 def get_client():
@@ -132,19 +133,12 @@ def set_keys():
 
     Key.public_key = data['public']
     Key.private_key = data['private']
+    save_keys(Key.public_key, Key.private_key)
     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
     response.headers['Content-Type'] = "application/json"
 
     return response, 200
-
-
-# @app.route('/keys', methods=['GET'])
-# def get_keys():
-#     response = make_response(jsonify({'public_key': Key.public_key, 'private_key': Key.private_key}))
-#     response.headers['Content-Type'] = "application/json"
-#
-#     return response, 200
 
 
 @app.route('/perpetual/trade', methods=['POST'])
