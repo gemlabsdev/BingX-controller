@@ -1,10 +1,8 @@
 import json
 import logging
 import os
-
 import eventlet
 from eventlet import wsgi
-from eventlet.green import socket
 from Key import Key
 from flask_cors import CORS
 from flask import Flask, request, render_template, make_response, jsonify, g
@@ -12,6 +10,9 @@ from bingX.perpetual.v1 import Perpetual
 from Service import PerpetualService
 from flask_socketio import SocketIO, emit
 from Cache import Cache
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from dotenv import load_dotenv
 
 
 class SocketIOHandler(logging.Handler):
@@ -31,31 +32,36 @@ socketio_handler.setFormatter(formatter)
 socketio_handler.setLevel(logging.INFO)
 logger.addHandler(socketio_handler)
 
+# remove on prod, heroku doesn tneed it
+load_dotenv()
 
-@app.before_request
-def load_keys():
-    if not os.path.exists('keys.json'):
-        # Generate default keys
-        keys = {
-            'public': '',
-            'private': ''
+uri = f"mongodb+srv://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}.mongodb.net/?retryWrites=true&w=majority"
+db_client = MongoClient(uri, server_api=ServerApi('1'))
+db = db_client[os.environ['DB_NAME']]
+keys_collection = db[os.environ['COLLECTION_NAME']]
+try:
+    db_client.admin.command('ping')
+    logger.info("Pinged your deployment. You successfully connected to MongoDB!")
+    keys = keys_collection.find_one({"exchange": "bingx"})
+    if keys is None:
+        new_key = {
+            "exchange": "bingx",
+            "public": "",
+            "private": ""
         }
-        with open('keys.json', 'w') as keys_file:
-            json.dump(keys, keys_file, indent=4)
-    with open('keys.json', 'r') as keys_file:
-        keys = json.loads(keys_file.read())
+        key_id = keys_collection.insert_one(new_key).inserted_id
+    else:
         Key.public_key = keys['public']
         Key.private_key = keys['private']
+except Exception as e:
+    logger.error(e)
 
 
 def save_keys(public, private):
-    keys = {
+    _keys = {
         "public": public,
         "private": private
     }
-    with open('keys.json', 'w') as keys_file:
-        keys = json.dumps(keys, indent=4)
-        keys_file.write(keys)
 
 
 def get_client():
@@ -126,7 +132,6 @@ def set_keys():
 
     Key.public_key = data['public']
     Key.private_key = data['private']
-    save_keys(Key.public_key, Key.private_key)
     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
     response.headers['Content-Type'] = "application/json"
@@ -134,12 +139,12 @@ def set_keys():
     return response, 200
 
 
-@app.route('/keys', methods=['GET'])
-def get_keys():
-    response = make_response(jsonify({'public_key': Key.public_key, 'private_key': Key.private_key}))
-    response.headers['Content-Type'] = "application/json"
-
-    return response, 200
+# @app.route('/keys', methods=['GET'])
+# def get_keys():
+#     response = make_response(jsonify({'public_key': Key.public_key, 'private_key': Key.private_key}))
+#     response.headers['Content-Type'] = "application/json"
+#
+#     return response, 200
 
 
 @app.route('/perpetual/trade', methods=['POST'])
