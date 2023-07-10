@@ -33,7 +33,7 @@ socketio_handler.setLevel(logging.INFO)
 logger.addHandler(socketio_handler)
 
 # remove on prod, heroku doesn tneed it
-load_dotenv()
+# load_dotenv()
 
 uri = f"mongodb+srv://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}.mongodb.net/?retryWrites=true&w=majority"
 db_client = MongoClient(uri, server_api=ServerApi('1'))
