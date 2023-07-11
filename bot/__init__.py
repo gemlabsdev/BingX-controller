@@ -1,15 +1,9 @@
 import json
-import logging
-import os
 
 from flask_cors import CORS
 from flask import Flask, request, make_response, jsonify, g
 from bingX.perpetual.v1 import Perpetual
 
-from flask_socketio import SocketIO, emit
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-from dotenv import load_dotenv
 from .utils.cache import Cache
 from .utils.logger import logger
 from .utils.key import Key
@@ -20,12 +14,19 @@ from .utils.socket_io_handler import SocketIOHandler
 def create_app():
     app = Flask(__name__, static_folder='../webapp/dist/')
     app.app_context().push()
-
     CORS(app)
+
+    #ref https://www.digitalocean.com/community/tutorials/how-to-structure-a-large-flask-application-with-flask-blueprints-and-flask-sqlalchemy
+    # App extensions
     from .db import init_db_connection
     init_db_connection(app)
+
+    # Blueprint registration
     from .socketio import bp as socketio_bp
     app.register_blueprint(socketio_bp)
+
+    from .main import bp as main_bp
+    app.register_blueprint(main_bp)
 
     # remove on prod, heroku doesn tneed it
     # load_dotenv()
@@ -87,9 +88,9 @@ def create_app():
     #     print('Received message:', data)
     #     socketio.emit('response', 'Server response')
 
-    @app.route('/')
-    def index():
-        return app.send_static_file('index.html')
+    # @app.route('/')
+    # def index():
+    #     return app.send_static_file('index.html')
 
     @app.route('/assets/<path:path>')
     def send_assets(path):
