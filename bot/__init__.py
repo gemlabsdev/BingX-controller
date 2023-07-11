@@ -92,9 +92,7 @@ def create_app():
     # def index():
     #     return app.send_static_file('index.html')
 
-    @app.route('/assets/<path:path>')
-    def send_assets(path):
-        return app.send_static_file(f'assets/{path}')
+
 
     @app.route('/user', methods=['GET'])
     def get_key_status():
