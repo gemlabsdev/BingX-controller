@@ -3,8 +3,8 @@ import time
 
 from bingX import ClientError
 from bingX.perpetual.v1 import Perpetual
-from logger import logger
-from Cache import Cache
+from .logger import logger
+from .cache import Cache
 
 
 def _set_split_symbol(symbol: str, quote: str = 'USDT'):
