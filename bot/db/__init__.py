@@ -25,6 +25,6 @@ def init_db():
     print('connected')
 
 
-def init_app(app):
+def init_db_connection(app):
     app.teardown_appcontext(close_db)
     init_db()

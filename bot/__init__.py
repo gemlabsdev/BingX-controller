@@ -10,8 +10,6 @@ from flask_socketio import SocketIO, emit
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from dotenv import load_dotenv
-from .db import init_app
-from .utils.socket_logger import init_logger
 from .utils.cache import Cache
 from .utils.logger import logger
 from .utils.key import Key
@@ -20,14 +18,15 @@ from .utils.socket_io_handler import SocketIOHandler
 
 
 def create_app():
-    app = Flask(__name__, static_folder='./webapp/dist/')
+    app = Flask(__name__, static_folder='../webapp/dist/')
     app.app_context().push()
 
     CORS(app)
-    socketio = SocketIO(app, cors_allowed_origins="*")
+    from .db import init_db_connection
+    init_db_connection(app)
+    from .socketio import bp as socketio_bp
+    app.register_blueprint(socketio_bp)
 
-    init_logger(socketio)
-    init_app(app)
     # remove on prod, heroku doesn tneed it
     # load_dotenv()
     #
@@ -65,28 +64,28 @@ def create_app():
 
         return g.client
 
-    @socketio.on('connect')
-    def handle_connect():
-        print('Client connected')
-        with open('logs.log', 'r') as f:
-            logs = f.read()
-        emit('logs', logs)
-
-    @socketio.on('disconnect')
-    def handle_disconnect():
-        print('Client disconnected')
-
-    @socketio.on('logs')
-    def handle_logs():
-        print('Client Logging')
-        with open('logs.log', 'r') as f:
-            logs = f.readlines()[-1]
-        emit('logs', logs)
-
-    @socketio.on('message')
-    def handle_message(data):
-        print('Received message:', data)
-        socketio.emit('response', 'Server response')
+    # @socketio.on('connect')
+    # def handle_connect():
+    #     print('Client connected')
+    #     with open('logs.log', 'r') as f:
+    #         logs = f.read()
+    #     emit('logs', logs)
+    #
+    # @socketio.on('disconnect')
+    # def handle_disconnect():
+    #     print('Client disconnected')
+    #
+    # @socketio.on('logs')
+    # def handle_logs():
+    #     print('Client Logging')
+    #     with open('logs.log', 'r') as f:
+    #         logs = f.readlines()[-1]
+    #     emit('logs', logs)
+    #
+    # @socketio.on('message')
+    # def handle_message(data):
+    #     print('Received message:', data)
+    #     socketio.emit('response', 'Server response')
 
     @app.route('/')
     def index():
