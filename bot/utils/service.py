@@ -79,11 +79,11 @@ class PerpetualService:
             logger.info(f'No cached positions for {self.symbol}')
             logger.info(f'Requesting open {self.symbol} positions from BingX')
             response = self.client.positions(self.symbol)
-            logger.info(f'Adding {self.symbol} {self.position_side} position to cache')
             if response['positions'] is None:
                 return
             position_id = response['positions'][0]['positionId']
             position_side = response['positions'][0]['positionSide']
+            logger.info(f'Adding {self.symbol} {self.position_side} position to cache')
             self.add_position_to_cache(position_id, position_side)
             return response['positions'][0]
         logger.info(f'Finding open {self.symbol} positions in cache')
@@ -123,6 +123,11 @@ class PerpetualService:
             if closed_trade.get('status') == 'SAME_DIRECTION':
                 logger.warn(f'A {self.position_side} position for {self.symbol} is already in place. '
                             f'Close position to place a new one')
+                logger.info(f'-----------------REQUEST-FINISHED-----------------------')
+                response = json.dumps({'status': 'REJECTED'})
+                return response
+            if closed_trade.get('status') == 'NO_POSITION_FOUND':
+                logger.warn(f' Nothing to close')
                 logger.info(f'-----------------REQUEST-FINISHED-----------------------')
                 response = json.dumps({'status': 'REJECTED'})
                 return response
@@ -175,12 +180,17 @@ class PerpetualService:
                 return {'status': 'SAME_DIRECTION'}
             if not is_only_close:
                 logger.warn(f'Open position found - Only 1 open position per symbol allowed')
-            logger.info(f'Closing {position_side.upper()} position for {self.symbol}')
-            response = self.client.close_position(symbol=self.symbol, positionId=position_id)
-            logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
-            self.remove_position_from_cache()
-            logger.info(f'----------------REQUEST-FINISHED----------------------')
-            return response
+            if (position_side == self.position_side and self.action == 'Close') \
+                    or (position_side != self.position_side and self.action == 'Open'):
+                logger.info(f'Closing {position_side.upper()} position for {self.symbol}')
+                response = self.client.close_position(symbol=self.symbol, positionId=position_id)
+                logger.info(f'CLOSE-POSITION: DONE IN {int((time.time() - start_time_close) * 1000)}ms')
+                self.remove_position_from_cache()
+                logger.info(f'----------------REQUEST-FINISHED----------------------')
+                return response
+            else:
+                logger.warn(f'No position found')
+                return {'status': 'NO_POSITION_FOUND'}
 
         except ClientError as error:
             if error.error_msg == 'position not exist':
