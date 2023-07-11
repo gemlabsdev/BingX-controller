@@ -51,11 +51,10 @@ const isReturningUser = async function () {
 };
 
 async function getUserStatus() {
-  const response = await fetch(`${hostname}/user`, {
+  const response = await fetch(`${hostname}/credentials/bingx/status`, {
     method: 'GET',
   })
-  const data = await response.json()
-
+  const data = await response
   return data.user
 
 }

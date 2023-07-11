@@ -7,18 +7,18 @@
   <n-form-item
       ref="publicKey"
       label="Public Key"
-      path="public">
+      path="public_key">
       <n-input
           @keydown.enter.prevent
-          v-model:value="keys.public" />
+          v-model:value="keys.public_key" />
   </n-form-item>
   <n-form-item
       ref="privateKey"
       label="Private Key"
-      path="private">
+      path="private_key">
       <n-input
         type="password"
-        v-model:value="keys.private"
+        v-model:value="keys.private_key"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -29,7 +29,7 @@
       path="privateOld">
       <n-input
         type="password"
-        v-model:value="keys.private_current"
+        v-model:value="keys.private_key_current"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -37,7 +37,7 @@
     <n-button
         round
         type="primary"
-        :disabled="!keys.public || !keys.private || (isToUpdate && !keys.private_current)"
+        :disabled="!keys.public || !keys.private_key || (isToUpdate && !keys.private_key_current)"
         @click="handleValidation">
       Submit
     </n-button>
@@ -57,19 +57,19 @@ const title = ref(props.isToUpdate ? 'Update API keys' : 'Load API keys')
 const apiKeys = ref(null)
 const message = useMessage()
 const keys = ref({
-  public: '',
-  private: '',
-  private_current: ''
+  public_key: '',
+  private_key: '',
+  private_key_current: ''
 })
 
 const rules = {
-  public: [
+  public_key: [
       {
         required: true,
         message: "Public key is required"
       }
     ],
-  private: [
+  private_key: [
       {
         required: true,
         message: "Private key is required"
@@ -78,7 +78,7 @@ const rules = {
 }
 
 async function postKeys() {
-  const response = await fetch(`${hostname}/keys`, {
+  const response = await fetch(`${hostname}/credentials/bingx`, {
     method: 'POST',
     body: JSON.stringify(keys.value)
   })

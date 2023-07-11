@@ -98,8 +98,8 @@ const payload = computed(() => {
 })
 
 const endpoints = reactive({
-  perpetualTrade: `${hostname}/perpetual/trade/`,
-  keys: `${hostname}/keys/`
+  perpetualTrade: `${hostname}/perpetual/trade`,
+  keys: `${hostname}/credentials`
 })
 
 const copyTemplateToClipboard = async function () {
