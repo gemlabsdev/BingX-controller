@@ -20,9 +20,10 @@ def get_credential_status(exchange: str):
     credentials = get_credentials(exchange)
     is_first_login = credentials.public_key == '' and credentials.private_key == ''
     user = 'NEW_USER' if is_first_login else 'CURRENT_USER'
-    response = make_response(jsonify({'user': user}))
-    response.headers['Content-Type'] = "application/json"
-    return exchange, 200
+    response = jsonify({'user': user})
+    response.status_code = 200
+
+    return response
 
 
 @bp.route('/credentials/<exchange>', methods=['POST'])

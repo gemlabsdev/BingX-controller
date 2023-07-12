@@ -31,7 +31,7 @@
 
 <script setup>
 import KeyForm from "../Actions/KeyForm.vue";
-import {NCard, NButton, useMessage} from "naive-ui";
+import {NButton, NCard, useMessage} from "naive-ui";
 import {onBeforeMount, onMounted, ref} from "vue";
 import ActionBoard from "./ActionBoard.vue";
 import {hostname} from "../hostname.js";
@@ -54,7 +54,7 @@ async function getUserStatus() {
   const response = await fetch(`${hostname}/credentials/bingx/status`, {
     method: 'GET',
   })
-  const data = await response
+  const data = await response.json()
   return data.user
 
 }
