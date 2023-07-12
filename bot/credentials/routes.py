@@ -4,15 +4,22 @@ import os
 from .. import logger
 from ..utils.credentials import Credentials
 from ..credentials import bp
-from flask import g, make_response, jsonify, request, current_app
-from .. import mongo
+from flask import make_response, jsonify, request, g
+from ..db import mongo, store_user_credentials
+
+db = mongo.db[os.environ['COLLECTION_NAME']]
+
+
+@bp.before_request
+def find_user_credentials():
+    store_user_credentials()
 
 
 @bp.route('/credentials/<exchange>/status', methods=['GET'])
 def get_credential_status(exchange):
     credentials = get_credentials(exchange)
-    firstTime = credentials.public_key == '' and credentials.private_key == ''
-    user = 'NEW_USER' if firstTime else 'CURRENT_USER'
+    is_first_login = credentials.public_key == '' and credentials.private_key == ''
+    user = 'NEW_USER' if is_first_login else 'CURRENT_USER'
     response = make_response(jsonify({'user': user}))
     response.headers['Content-Type'] = "application/json"
     print(response)
@@ -21,19 +28,29 @@ def get_credential_status(exchange):
 
 @bp.route('/credentials/<exchange>', methods=['POST'])
 def post_credentials(exchange):
-    credentials = get_credentials(exchange)
-    firstTime = credentials.public_key == '' and credentials.private_key == ''
     new_credentials = json.loads(request.data)
+    credentials = get_credentials(exchange)
+    is_first_login = credentials.public_key == '' and credentials.private_key == ''
+    is_wrong_private_key = new_credentials['private_key_current'] != credentials.private_key
+    is_blank_credential = credentials.public_key == '' or credentials.private_key == ''
 
-    if new_credentials['private_key_current'] != credentials.private_key:
+    if is_wrong_private_key:
         response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
         response.headers['Content-Type'] = "application/json"
         logger.info(f'API Keys were not updated. Wrong Private Key.')
 
         return response, 403
+
+    if is_blank_credential:
+        response = make_response(jsonify({'status': 'NO_EMPTY_KEYS'}))
+        response.headers['Content-Type'] = "application/json"
+        logger.info(f'API Keys were not updated. Empty keys are not allowed.')
+
+        return response, 403
+
     # TODO dont forget to change the payload (FE) here to send the exchagne
     save_credentials(new_credentials)
-    logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
+    logger.info(f'API Keys were successfully {"added" if is_first_login else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
     response.headers['Content-Type'] = "application/json"
 
@@ -41,19 +58,11 @@ def post_credentials(exchange):
 
 
 def get_credentials(exchange):
-    collection = mongo.db[os.environ['COLLECTION_NAME']]
-    if (credentials := collection.find_one({"exchange": exchange})) is not None:
-        return get_credentials_object(credentials)
+    credentials = next(credential for credential in g.user_credentials if credential.exchange == exchange)
+    if credentials is not None:
+        return credentials
     else:
-        return create_new_empty_credentials(exchange, collection)
-
-
-def get_credentials_object(credentials):
-    _credentials = Credentials(credentials['public_key'],
-                               credentials['private_key'],
-                               credentials['exchange'])
-
-    return _credentials
+        return create_new_empty_credentials(exchange)
 
 
 def create_new_empty_credentials(exchange):
@@ -62,10 +71,9 @@ def create_new_empty_credentials(exchange):
     return _credentials
 
 
-def save_credentials(credentials):
-    collection = mongo.db[os.environ['COLLECTION_NAME']]
+def save_credentials(credentials=None):
     new_keys = {"$set": {
-        "public": credentials['public_key'] or '',
-        "private": credentials['private_key'] or ''
+        "public_key": credentials['public_key'],
+        "private_key": credentials['private_key']
     }}
-    collection.update_one({"exchange": credentials['exchange']}, new_keys)
+    db.update_one({"exchange": credentials['exchange']}, new_keys)
