@@ -11,7 +11,6 @@ def store_user_credentials():
 
     if 'user_credentials' not in g:
         g.user_credentials = user_credentials
-        print(f"added {user_credentials} to global {g}")
     return g.user_credentials
 
 
