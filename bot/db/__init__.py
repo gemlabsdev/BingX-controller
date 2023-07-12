@@ -1,3 +1,3 @@
-from pymongo import MongoClient
+from flask_pymongo import PyMongo
 
-mongo = MongoClient
+mongo = PyMongo()

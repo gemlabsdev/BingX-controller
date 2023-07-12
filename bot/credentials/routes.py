@@ -5,6 +5,7 @@ from .. import logger
 from ..utils.credentials import Credentials
 from ..credentials import bp
 from flask import g, make_response, jsonify, request, current_app
+from .. import mongo
 
 
 @bp.route('/credentials/<exchange>/status', methods=['GET'])
@@ -30,7 +31,7 @@ def post_credentials(exchange):
         logger.info(f'API Keys were not updated. Wrong Private Key.')
 
         return response, 403
-    # TODO dont forget to change the payload here to send the exchagne
+    # TODO dont forget to change the payload (FE) here to send the exchagne
     save_credentials(new_credentials)
     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
@@ -40,24 +41,23 @@ def post_credentials(exchange):
 
 
 def get_credentials(exchange):
-    collection = g.mongo['keys_db']['keys']
+    collection = mongo.db[os.environ['COLLECTION_NAME']]
     if (credentials := collection.find_one({"exchange": exchange})) is not None:
-        print(credentials)
-        return load_credentials(credentials)
+        return get_credentials_object(credentials)
     else:
         return create_new_empty_credentials(exchange, collection)
 
 
-def load_credentials(credentials):
+def get_credentials_object(credentials):
     _credentials = Credentials(credentials['public_key'],
-                       credentials['private_key'],
-                       credentials['exchange'])
+                               credentials['private_key'],
+                               credentials['exchange'])
 
     return _credentials
 
 
 def create_new_empty_credentials(exchange):
-    _credentials = {"public": '', "private": '', "exchange": exchange}
+    _credentials = Credentials('', '', exchange)
     save_credentials(_credentials)
     return _credentials
 
@@ -68,4 +68,4 @@ def save_credentials(credentials):
         "public": credentials['public_key'] or '',
         "private": credentials['private_key'] or ''
     }}
-    collection.update_one({"exchange": credentials.exchange}, new_keys)
+    collection.update_one({"exchange": credentials['exchange']}, new_keys)

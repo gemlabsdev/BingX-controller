@@ -13,21 +13,16 @@ from .utils.logger import logger
 from .utils.credentials import Credentials
 from .utils.service import PerpetualService
 from .utils.socket_io_handler import SocketIOHandler
-
-
-
+from .db import mongo
 
 def create_app():
     app = Flask(__name__, static_folder='../webapp/dist/')
     CORS(app)
     app.config.from_object(Config)
     app.app_context().push()
-
-    # Initialize MongoDB client
-    mongo_client = MongoClient(app.config['MONGO_URI'])
-
     # Add the MongoDB client to the Flask app context
-    g.mongo = mongo_client
+    mongo.init_app(app)
+
     # Blueprint registration
     from .socketio import bp as socketio_bp
     app.register_blueprint(socketio_bp)
@@ -43,36 +38,6 @@ def create_app():
     #         # g.client = Perpetual(Key.public_key, Key.private_key)
     #
     #     return g.client
-
-    # @app.route('/user', methods=['GET'])
-    # def get_key_status():
-    #     firstTime = Key.public_key == "" or Key.private_key == ""
-    #     user = 'NEW_USER' if firstTime else 'CURRENT_USER'
-    #     response = make_response(jsonify({'user': user}))
-    #     response.headers['Content-Type'] = "application/json"
-    #
-    #     return response, 200
-
-    # @app.route('/keys', methods=['POST'])
-    # def set_keys():
-    #     firstTime = Key.public_key == "" or Key.private_key == ""
-    #     data = json.loads(request.data)
-    #     if not firstTime:
-    #         if data['private_current'] != Key.private_key:
-    #             response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
-    #             response.headers['Content-Type'] = "application/json"
-    #             logger.info(f'API Keys were not updated. Wrong Private Key.')
-    #
-    #             return response, 403
-    #
-    #     Key.public_key = data['public']
-    #     Key.private_key = data['private']
-    #     # save_keys(Key.public_key, Key.private_key)
-    #     logger.info(f'API Keys were successfully {"added" if firstTime else "updated"}')
-    #     response = make_response(jsonify({'status': 'SUCCESS'}))
-    #     response.headers['Content-Type'] = "application/json"
-    #
-    #     return response, 200
 
     @app.route('/perpetual/trade', methods=['POST'])
     def perpetual_order():
@@ -95,15 +60,6 @@ def create_app():
         Cache.clear_cache()
         return 'CACHE CLEARED'
 
-    # @app.route('/perpetual/positions', methods=['POST'])
-    # def get_open_positions():
-    #     client = get_client()
-    #     data = json.loads(request.data)
-    #     service = PerpetualService(client=client,
-    #                                symbol=data['symbol'])
-    #     response = service.get_open_positions_api()
-    #     return response
-
     @app.route('/logs', methods=['GET'])
     def get_logs():
         with open('logs.log', 'r') as f:
@@ -115,9 +71,5 @@ def create_app():
         with open('logs.log', 'w') as f:
             f.close()
         return {'status': 'DELETED'}
-
-    @app.before_request
-    def set_attr():
-        g.mongo = mongo_client
 
     return app
