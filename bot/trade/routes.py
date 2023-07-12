@@ -1,30 +1,37 @@
 import json
 
 from bingX.perpetual.v1 import Perpetual
-from flask import request
-from .. import PerpetualService
+from flask import request, g
+from ..services.order_service import OrderService
 from ..trade import bp
+from ..db import store_user_credentials
 
 
-def get_client():
-    if 'client' not in g:
-        g.client = Perpetual(Key.public_key, Key.private_key)
-
-    return g.client
+@bp.before_request
+def find_user_credentials():
+    store_user_credentials()
 
 
-@bp.route('/perpetual/trade', methods=['POST'])
-def perpetual_order():
-    client = get_client()
-    data = json.loads(request.data)
-    service = PerpetualService(client=client,
-                               symbol=data['symbol'],
-                               side=data['side'],
-                               action=data['action'],
-                               quantity=data['quantity'],
-                               trade_type=data['trade_type'],
-                               leverage=data['leverage'] if 'leverage' in data else 1)
-    if data['action'] == 'Open':
-        return service.open_trade()
-    if data['action'] == 'Close':
-        return service.close_trade()
+@bp.route('/trade/<exchange>', methods=['POST'])
+def perpetual_order(exchange):
+    credentials = get_user_credentials(exchange)
+    print(credentials)
+    if credentials is None:
+        return {'status': 'NO_POSITION_FOUND'}, 400
+    client = Perpetual(credentials.public_key, credentials.private_key)
+    trade = json.loads(request.data)
+    service = OrderService(client=client,
+                           symbol=trade['symbol'],
+                           side=trade['side'],
+                           action=trade['action'],
+                           quantity=trade['quantity'],
+                           trade_type=trade['trade_type'],
+                           leverage=trade['leverage'] if 'leverage' in trade else 1)
+    if trade['action'] == 'Open':
+        return service.open_order()
+    if trade['action'] == 'Close':
+        return service.close_order()
+
+
+def get_user_credentials(exchange):
+    return next((credential for credential in g.user_credentials if credential.exchange == exchange), None)

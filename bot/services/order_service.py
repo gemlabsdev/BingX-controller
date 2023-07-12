@@ -3,8 +3,8 @@ import time
 
 from bingX import ClientError
 from bingX.perpetual.v1 import Perpetual
-from .logger import logger
-from .cache import Cache
+from ..utils.logger import logger
+from ..utils.cache import Cache
 
 
 def _set_split_symbol(symbol: str, quote: str = 'USDT'):
@@ -15,7 +15,7 @@ def _set_split_symbol(symbol: str, quote: str = 'USDT'):
     return symbol[:middle] + "-" + symbol[middle:]
 
 
-class PerpetualService:
+class OrderService:
     open_orders = []
 
     def __init__(self,
@@ -116,10 +116,10 @@ class PerpetualService:
                                              'positionSide': None}
         return
 
-    def open_trade(self):
+    def open_order(self):
         try:
             start_time_open_close = time.time()
-            closed_trade = self.close_trade(is_only_close=False)
+            closed_trade = self.close_order(is_only_close=False)
             if closed_trade.get('status') == 'SAME_DIRECTION':
                 logger.warn(f'A {self.position_side} position for {self.symbol} is already in place. '
                             f'Close position to place a new one')
@@ -160,7 +160,7 @@ class PerpetualService:
             logger.error(f'{error_msg.upper()}')
             return {'ERROR': error_msg.upper()}
 
-    def close_trade(self, is_only_close=True):
+    def close_order(self, is_only_close=True):
         try:
             start_time_close = time.time()
             if is_only_close:

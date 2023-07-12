@@ -34,22 +34,21 @@ def post_credentials(exchange: str):
     is_wrong_private_key = data['private_key_current'] != credentials.private_key
     is_blank_credential = credentials.public_key == '' or credentials.private_key == ''
 
-    if is_wrong_private_key:
+    if is_wrong_private_key and not is_first_login:
         response = make_response(jsonify({'status': 'WRONG_PRIVATE_KEY'}))
         response.headers['Content-Type'] = "application/json"
         logger.info(f'API Keys were not updated. Wrong Private Key.')
 
         return response, 403
 
-    if is_blank_credential:
+    if is_blank_credential and not is_first_login:
         response = make_response(jsonify({'status': 'NO_EMPTY_KEYS'}))
         response.headers['Content-Type'] = "application/json"
         logger.info(f'API Keys were not updated. Empty keys are not allowed.')
 
         return response, 403
 
-    # TODO dont forget to change the payload (FE) here to send the exchagne
-    save_credentials(new_credentials)
+    update_credentials(new_credentials)
     logger.info(f'API Keys were successfully {"added" if is_first_login else "updated"}')
     response = make_response(jsonify({'status': 'SUCCESS'}))
     response.headers['Content-Type'] = "application/json"
@@ -67,13 +66,20 @@ def get_credentials(exchange: str):
 
 def create_new_empty_credentials(exchange: str):
     _credentials = Credentials('', '', exchange)
-    save_credentials(_credentials)
+    create_credentials(_credentials)
     return _credentials
 
 
-def save_credentials(credentials: Credentials):
+def update_credentials(credentials: Credentials):
     new_keys = {"$set": {
         "public_key": credentials.public_key,
         "private_key": credentials.private_key
     }}
     db.update_one({"exchange": credentials.exchange}, new_keys)
+
+
+def create_credentials(credentials: Credentials):
+    db.insert_one({"exchange": credentials.exchange,
+                   "public_key": credentials.public_key,
+                   "private_key": credentials.private_key
+                   })

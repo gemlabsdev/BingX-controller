@@ -6,7 +6,6 @@ from .config import Config
 from .utils.cache import Cache
 from .utils.logger import logger
 from .utils.credentials import Credentials
-from .utils.service import PerpetualService
 from .utils.socket_io_handler import SocketIOHandler
 from .db import mongo, store_user_credentials
 
@@ -17,7 +16,6 @@ def create_app():
     app.config.from_object(Config)
 
     with app.app_context():
-
         mongo.init_app(app)
 
         # Blueprint registration
@@ -33,6 +31,7 @@ def create_app():
         from .logs import bp as logs_bp
         app.register_blueprint(logs_bp)
 
-
+        from .trade import bp as trade_bp
+        app.register_blueprint(trade_bp)
 
     return app
