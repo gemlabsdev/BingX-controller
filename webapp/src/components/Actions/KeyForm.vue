@@ -10,7 +10,7 @@
       path="public_key">
       <n-input
           @keydown.enter.prevent
-          v-model:value="keys.public_key" />
+          v-model:value="credentials.public_key" />
   </n-form-item>
   <n-form-item
       ref="privateKey"
@@ -18,7 +18,7 @@
       path="private_key">
       <n-input
         type="password"
-        v-model:value="keys.private_key"
+        v-model:value="credentials.private_key"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -29,7 +29,7 @@
       path="privateOld">
       <n-input
         type="password"
-        v-model:value="keys.private_key_current"
+        v-model:value="credentials.private_key_current"
         @keydown.enter.prevent
       />
   </n-form-item>
@@ -37,7 +37,7 @@
     <n-button
         round
         type="primary"
-        :disabled="!keys.public || !keys.private_key || (isToUpdate && !keys.private_key_current)"
+        :disabled="!credentials.public_key || !credentials.private_key || (isToUpdate && !credentials.private_key_current)"
         @click="handleValidation">
       Submit
     </n-button>
@@ -56,7 +56,8 @@ const emit = defineEmits(['submit'])
 const title = ref(props.isToUpdate ? 'Update API keys' : 'Load API keys')
 const apiKeys = ref(null)
 const message = useMessage()
-const keys = ref({
+const credentials = ref({
+  exchange: 'bingx',
   public_key: '',
   private_key: '',
   private_key_current: ''
@@ -80,7 +81,7 @@ const rules = {
 async function postKeys() {
   const response = await fetch(`${hostname}/credentials/bingx`, {
     method: 'POST',
-    body: JSON.stringify(keys.value)
+    body: JSON.stringify(credentials.value)
   })
   const data = await response.json()
 
