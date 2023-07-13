@@ -10,7 +10,7 @@ socketio = SocketIO(current_app, cors_allowed_origins="*")
 def init_socket_logger():
     logger = logging.getLogger('BingXBot')
     socketio_handler = SocketIOHandler(socketio)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
     socketio_handler.setFormatter(formatter)
     socketio_handler.setLevel(logging.INFO)
     logger.addHandler(socketio_handler)
