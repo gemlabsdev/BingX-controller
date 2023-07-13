@@ -16,7 +16,7 @@ def find_user_credentials():
 def perpetual_order(exchange):
     credentials = get_user_credentials(exchange)
     if credentials is None:
-        return {'status': 'NO_POSITION_FOUND'}, 400
+        return json.dumps({'status': 'NO_CREDENTIALS_FOUND'}), 400
     client = Perpetual(credentials.public_key, credentials.private_key)
     trade = json.loads(request.data)
     service = OrderService(client=client,
