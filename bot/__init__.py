@@ -1,9 +1,7 @@
 from flask_cors import CORS
 from flask import Flask
-from bingX.perpetual.v1 import Perpetual
 
 from .config import Config
-from .utils.cache import Cache
 from .utils.logger import logger
 from .utils.credentials import Credentials
 from .utils.socket_io_handler import SocketIOHandler

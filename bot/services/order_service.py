@@ -4,7 +4,7 @@ import time
 from bingX import ClientError
 from bingX.perpetual.v1 import Perpetual
 from ..utils.logger import logger
-from ..utils.cache import Cache
+from ..cache import Cache
 
 
 def _set_split_symbol(symbol: str, quote: str = 'USDT'):
@@ -73,9 +73,6 @@ class OrderService:
             100503: 'Server busy',
         }
 
-    def _error_mapper(self, code, message):
-        return self.error_msg_map[code] or message
-
     def _set_entrust_volume(self, quantity: float):
         response = self.client.latest_price(self.symbol)
         asset_price = float(response['tradePrice'])
@@ -86,23 +83,26 @@ class OrderService:
         self.client.switch_margin_mode(self.symbol, self.margin)
 
     def set_leverage(self):
-        leverage = Cache.get_symbol_leverage(self.exchange, self.symbol)
+        leverage = Cache.get_asset_leverage(self.exchange, self.symbol)
         if self.leverage != leverage:
             self.client.switch_leverage(self.symbol, 'Long', self.leverage)
             self.client.switch_leverage(self.symbol, 'Short', self.leverage)
-            Cache.set_symbol_leverage(self.exchange, self.symbol, self.leverage)
-            print(Cache.get_symbol_leverage(self.exchange, self.symbol))
+            Cache.set_asset_leverage(self.exchange, self.symbol, self.leverage)
+            print(Cache.get_exchange(self.exchange))
+            print(Cache.get_asset(self.exchange, self.symbol))
             return
-        print(Cache.get_symbol_cache(self.exchange, self.symbol))
 
     def fetch_open_position(self):
+        # cached_position = Cache.get_symbol_position(self.exchange, self.symbol)
+        # if cached_position["id"] is not None:
+        #     return {"positionId": cached_position["id"], "positionSide": cached_position["side"]}
         response = self.client.positions(self.symbol)
         return set_open_position(response['positions'][0] if response['positions'] is not None else None)
 
-    # def add_position_to_cache(self, position_id=None, position_side=None):
-    #     Cache.open_positions[self.symbol] = {'positionId': position_id,
-    #                                          'positionSide': position_side}
+    # def add_position_to_cache(self, position):
+    #     Cache.set_symbol_position(self.exchange, self.symbol, position)
     #     return
+
     #
     # def add_leverage_to_cache(self, leverage):
     #     Cache.symbol_leverage[self.symbol] = leverage
@@ -120,19 +120,8 @@ class OrderService:
 
         logger.info(f'{self.exchange.upper()} - {self.symbol} - {message} - {stop_timer(timer)}ms')
 
-    def handle_client_error(self, error, timer):
-        if error.error_msg == 'position not exist':
-            error_msg = 'position does not exist'
-        else:
-            error_code = json.loads(error.error_msg)['Code']
-            server_message = json.loads(error.error_msg)['Msg']
-            error_msg = self._error_mapper(error_code, server_message)
-        self.log_message(f'{error_msg.upper()}', timer, 'error')
-
-        return json.dumps({'ERROR': error_msg.upper()})
-
     def start_order(self):
-        Cache.create_symbol_cache(self.exchange, self.symbol)
+        Cache.create_asset_cache(self.exchange, self.symbol)
         timer = time.time()
         try:
             position = self.fetch_open_position()
@@ -171,7 +160,8 @@ class OrderService:
                                                entrustPrice=self.entrust_price,
                                                entrustVolume=self.entrust_volume,
                                                tradeType=self.trade_type)
-
+            position = {"id": response, "side": self.side}
+            # self.add_position_to_cache(position)
             return response
 
         except ClientError as error:
@@ -186,3 +176,17 @@ class OrderService:
 
         except ClientError as error:
             return self.handle_client_error(error, time.time())
+
+    def handle_client_error(self, error, timer):
+        if error.error_msg == 'position not exist':
+            error_msg = 'position does not exist'
+        else:
+            error_code = json.loads(error.error_msg)['Code']
+            server_message = json.loads(error.error_msg)['Msg']
+            error_msg = self._error_mapper(error_code, server_message)
+        self.log_message(f'{error_msg.upper()}', timer, 'error')
+
+        return json.dumps({'ERROR': error_msg.upper()})
+
+    def _error_mapper(self, code, message):
+        return self.error_msg_map[code] or message
