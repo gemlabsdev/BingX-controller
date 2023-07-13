@@ -31,14 +31,28 @@ class Cache:
         return cls.get_asset(exchange, symbol).get_leverage()
 
     @classmethod
+    def get_asset_margin(cls, exchange, symbol) -> str:
+        return cls.get_asset(exchange, symbol).get_margin()
+
+    @classmethod
     def set_asset_position(cls, exchange, symbol, position: Position) -> None:
         _position = cls.get_asset_position(exchange, symbol)
         _position.set_id(position.get_id())
         _position.set_side(position.get_side())
 
     @classmethod
+    def remove_asset_position(cls, exchange, symbol) -> None:
+        _position = cls.get_asset_position(exchange, symbol)
+        _position.set_id()
+        _position.set_side()
+
+    @classmethod
     def set_asset_leverage(cls, exchange, symbol, leverage) -> None:
         cls.get_asset(exchange, symbol).set_leverage(leverage)
+
+    @classmethod
+    def set_asset_margin(cls, exchange, symbol, margin) -> None:
+        cls.get_asset(exchange, symbol).set_margin(margin)
 
     @classmethod
     def get_exchange(cls, name: str) -> Exchange:

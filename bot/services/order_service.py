@@ -1,10 +1,11 @@
 import json
 import time
+from typing import Union
 
 from bingX import ClientError
 from bingX.perpetual.v1 import Perpetual
 from ..utils.logger import logger
-from ..cache import Cache
+from ..cache import Cache, Position
 
 
 def _set_split_symbol(symbol: str, quote: str = 'USDT'):
@@ -19,23 +20,6 @@ def stop_timer(time_start):
     return int((time.time() - time_start) * 1000)
 
 
-def get_open_position():
-    return OrderService.open_position
-
-
-def set_open_position(position):
-    OrderService.open_position = position
-    return get_open_position()
-
-
-def get_open_position_id():
-    return None if OrderService.open_position is None else OrderService.open_position['positionId']
-
-
-def get_open_position_side():
-    return None if OrderService.open_position is None else OrderService.open_position['positionSide']
-
-
 class OrderService:
     open_position = None
 
@@ -47,7 +31,7 @@ class OrderService:
                  action: str = None,
                  quantity: float = 0,
                  trade_type: str = None,
-                 margin: str = None,
+                 margin: str = 'Isolated',
                  leverage: int = 1):
         self.client = client
         self.symbol = _set_split_symbol(symbol)
@@ -80,7 +64,10 @@ class OrderService:
         return quantity / asset_price
 
     def set_margin_mode(self):
-        self.client.switch_margin_mode(self.symbol, self.margin)
+        margin = Cache.get_asset_margin(self.exchange, self.symbol)
+        if self.margin != margin:
+            self.client.switch_margin_mode(self.symbol, self.margin)
+            Cache.set_asset_margin(self.exchange, self.symbol, self.margin)
 
     def set_leverage(self):
         leverage = Cache.get_asset_leverage(self.exchange, self.symbol)
@@ -88,30 +75,25 @@ class OrderService:
             self.client.switch_leverage(self.symbol, 'Long', self.leverage)
             self.client.switch_leverage(self.symbol, 'Short', self.leverage)
             Cache.set_asset_leverage(self.exchange, self.symbol, self.leverage)
-            print(Cache.get_exchange(self.exchange))
-            print(Cache.get_asset(self.exchange, self.symbol))
             return
 
-    def fetch_open_position(self):
-        # cached_position = Cache.get_symbol_position(self.exchange, self.symbol)
-        # if cached_position["id"] is not None:
-        #     return {"positionId": cached_position["id"], "positionSide": cached_position["side"]}
+    def fetch_open_position(self) -> Position:
+        position = Cache.get_asset_position(self.exchange, self.symbol)
+        if position.get_id():
+            return position
         response = self.client.positions(self.symbol)
-        return set_open_position(response['positions'][0] if response['positions'] is not None else None)
+        if api_positions := response['positions']:
+            return Position(api_positions[0]['positionId'], api_positions[0]['positionSide'])
 
-    # def add_position_to_cache(self, position):
-    #     Cache.set_symbol_position(self.exchange, self.symbol, position)
-    #     return
+    def add_position_to_cache(self, position: Position) -> None:
+        Cache.set_asset_position(self.exchange, self.symbol, position)
 
-    #
-    # def add_leverage_to_cache(self, leverage):
-    #     Cache.symbol_leverage[self.symbol] = leverage
-    #     return
-    #
-    # def remove_position_from_cache(self):
-    #     Cache.open_positions[self.symbol] = {'positionId': None,
-    #                                          'positionSide': None}
-    #     return
+        return
+
+    def remove_position_from_cache(self) -> None:
+        Cache.remove_asset_position(self.exchange, self.symbol)
+
+        return
 
     def log_message(self, message, timer, level='info'):
         if level == 'error':
@@ -129,7 +111,9 @@ class OrderService:
                 if position is None:
                     self.log_message(f'NO {self.position_side.upper()} POSITION TO CLOSE', timer)
                     return json.dumps({'status': 'NOT_FOUND'})
-                self.close_order()
+                close_order = self.close_order(position.get_id())
+                if close_order['status'] == 'ERROR':
+                    return close_order
                 self.log_message(f'CLOSED {self.position_side.upper()} POSITION', timer)
                 return json.dumps({'status': 'SUCCESS'})
 
@@ -138,42 +122,46 @@ class OrderService:
                     self.open_order()
                     self.log_message(f'OPENED {self.position_side.upper()} POSITION', timer)
                     return json.dumps({'status': 'SUCCESS'})
-                if position['positionSide'] == self.position_side:
+                if position.get_side() == self.position_side:
                     self.log_message(f'{self.position_side.upper()} POSITION ALREADY IN PLACE', timer)
                     return {'status': 'SAME_DIRECTION'}
-                if position['positionSide'] != self.position_side:
-                    self.close_order()
-                    self.log_message(f'CLOSED EXISTING {get_open_position_side().upper()} POSITION', timer)
-                    self.open_order()
+                if position.get_side() != self.position_side:
+                    close_order = self.close_order(position.get_id())
+                    if close_order['status'] == 'ERROR':
+                        return close_order
+                    self.log_message(f'CLOSED EXISTING {position.get_side().upper()} POSITION', timer)
+                    open_order = self.open_order()
+                    if open_order['status'] == 'ERROR':
+                        return open_order
                     self.log_message(f'OPENED {self.position_side.upper()} POSITION', timer)
                     return json.dumps({'status': 'SUCCESS'})
 
         except ClientError as error:
             return self.handle_client_error(error, time.time())
 
-    def open_order(self):
+    def open_order(self) -> object:
         try:
             self.set_leverage()
+            self.set_margin_mode()
             response = self.client.place_order(symbol=self.symbol,
                                                side=self.side,
                                                action=self.action,
                                                entrustPrice=self.entrust_price,
                                                entrustVolume=self.entrust_volume,
                                                tradeType=self.trade_type)
-            position = {"id": response, "side": self.side}
-            # self.add_position_to_cache(position)
-            return response
+            position = Position(response["orderId"], self.position_side)
+            self.add_position_to_cache(position)
+            return {"status": "SUCCESS"}
 
         except ClientError as error:
+
             return self.handle_client_error(error, time.time())
 
-    def close_order(self):
+    def close_order(self, position_id: str) -> object:
         try:
-            positionId = get_open_position_id()
-            response = self.client.close_position(self.symbol, positionId)
-
-            return response
-
+            self.client.close_position(self.symbol, position_id)
+            self.remove_position_from_cache()
+            return {"status": "SUCCESS"}
         except ClientError as error:
             return self.handle_client_error(error, time.time())
 
@@ -186,7 +174,7 @@ class OrderService:
             error_msg = self._error_mapper(error_code, server_message)
         self.log_message(f'{error_msg.upper()}', timer, 'error')
 
-        return json.dumps({'ERROR': error_msg.upper()})
+        return {'status': 'ERROR', 'error': error_msg.upper()}
 
     def _error_mapper(self, code, message):
         return self.error_msg_map[code] or message

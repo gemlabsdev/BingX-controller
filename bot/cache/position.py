@@ -12,8 +12,8 @@ class Position:
     def get_side(self) -> str:
         return self.side
 
-    def set_id(self, _id: str) -> None:
+    def set_id(self, _id: str = None) -> None:
         self._id = _id
 
-    def set_side(self, side: str) -> None:
+    def set_side(self, side: str = None) -> None:
         self.side = side
