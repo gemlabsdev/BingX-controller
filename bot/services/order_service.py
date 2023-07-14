@@ -32,7 +32,9 @@ class OrderService:
                  quantity: float = 0,
                  trade_type: str = None,
                  margin: str = 'Isolated',
-                 leverage: int = 1):
+                 leverage: int = 1,
+                 safety: bool = False
+                 ):
         self.client = client
         self.symbol = _set_split_symbol(symbol)
         self.exchange = exchange
@@ -45,6 +47,8 @@ class OrderService:
         self.entrust_volume = self._set_entrust_volume(self.quantity)
         self.margin = margin
         self.position_side = "Long" if self.side == 'Bid' else 'Short'
+        self.safety = safety
+        self.is_swap = False
 
         self.error_msg_map = {
             100001: 'Signature authentication failed',
@@ -77,15 +81,20 @@ class OrderService:
             Cache.set_asset_leverage(self.exchange, self.symbol, self.leverage)
             return
 
-    def fetch_open_position(self) -> Position:
+    def fetch_open_position(self, force=False) -> Position:
         position = Cache.get_asset_position(self.exchange, self.symbol)
-        if position.get_id():
+        if position.get_id() is not None and not force:
             return position
         response = self.client.positions(self.symbol)
+        print('requesting api position')
         if api_positions := response['positions']:
             return Position(api_positions[0]['positionId'], api_positions[0]['positionSide'])
 
-    def add_position_to_cache(self, position: Position) -> None:
+    def update_cache(self) -> None:
+        position = self.fetch_open_position(force=True)
+        if position is None:
+            Cache.remove_asset_position(self.exchange, self.symbol)
+            return
         Cache.set_asset_position(self.exchange, self.symbol, position)
 
         return
@@ -108,30 +117,40 @@ class OrderService:
         try:
             position = self.fetch_open_position()
             if self.action == 'Close':
-                if position is None:
-                    self.log_message(f'NO {self.position_side.upper()} POSITION TO CLOSE', timer)
+                safety_message = 'SAFETY HOOK - ' if self.safety else ''
+                if position is None or position.get_side() != self.position_side:
+                    self.log_message(f'{safety_message}NO {self.position_side.upper()} POSITION TO CLOSE', timer)
                     return json.dumps({'status': 'NOT_FOUND'})
                 close_order = self.close_order(position.get_id())
                 if close_order['status'] == 'ERROR':
+                    self.update_cache()
                     return close_order
-                self.log_message(f'CLOSED {self.position_side.upper()} POSITION', timer)
+                self.log_message(f'{safety_message}CLOSED {self.position_side.upper()} POSITION', timer)
                 return json.dumps({'status': 'SUCCESS'})
 
             if self.action == 'Open':
                 if position is None:
-                    self.open_order()
+                    open_order = self.open_order()
+                    print(Cache.get_asset_position(self.exchange, self.symbol))
+                    if open_order['status'] == 'ERROR':
+                        self.update_cache()
+                        return open_order
                     self.log_message(f'OPENED {self.position_side.upper()} POSITION', timer)
                     return json.dumps({'status': 'SUCCESS'})
                 if position.get_side() == self.position_side:
                     self.log_message(f'{self.position_side.upper()} POSITION ALREADY IN PLACE', timer)
                     return {'status': 'SAME_DIRECTION'}
                 if position.get_side() != self.position_side:
+                    self.is_swap = True
                     close_order = self.close_order(position.get_id())
                     if close_order['status'] == 'ERROR':
+                        self.update_cache()
                         return close_order
-                    self.log_message(f'CLOSED EXISTING {position.get_side().upper()} POSITION', timer)
+                    opposite_position = 'Long' if self.position_side is 'Short' else 'Short'
+                    self.log_message(f'CLOSED EXISTING {opposite_position.upper()} POSITION', timer)
                     open_order = self.open_order()
                     if open_order['status'] == 'ERROR':
+                        self.update_cache()
                         return open_order
                     self.log_message(f'OPENED {self.position_side.upper()} POSITION', timer)
                     return json.dumps({'status': 'SUCCESS'})
@@ -149,8 +168,7 @@ class OrderService:
                                                entrustPrice=self.entrust_price,
                                                entrustVolume=self.entrust_volume,
                                                tradeType=self.trade_type)
-            position = Position(response["orderId"], self.position_side)
-            self.add_position_to_cache(position)
+            self.update_cache()
             return {"status": "SUCCESS"}
 
         except ClientError as error:
@@ -159,15 +177,19 @@ class OrderService:
 
     def close_order(self, position_id: str) -> object:
         try:
+            print(f'closing {position_id}')
             self.client.close_position(self.symbol, position_id)
             self.remove_position_from_cache()
             return {"status": "SUCCESS"}
         except ClientError as error:
+            print(error)
             return self.handle_client_error(error, time.time())
 
     def handle_client_error(self, error, timer):
         if error.error_msg == 'position not exist':
-            error_msg = 'position does not exist'
+            opposite_position = 'Long' if self.position_side is 'Short' else 'Short'
+            position = self.position_side if not self.is_swap else opposite_position
+            error_msg = f'NO {position.upper()} POSITION TO CLOSE'
         else:
             error_code = json.loads(error.error_msg)['Code']
             server_message = json.loads(error.error_msg)['Msg']
