@@ -146,7 +146,7 @@ class OrderService:
                     if close_order['status'] == 'ERROR':
                         self.update_cache()
                         return close_order
-                    opposite_position = 'Long' if self.position_side is 'Short' else 'Short'
+                    opposite_position = 'Long' if self.position_side == 'Short' else 'Short'
                     self.log_message(f'CLOSED EXISTING {opposite_position.upper()} POSITION', timer)
                     open_order = self.open_order()
                     if open_order['status'] == 'ERROR':
@@ -187,7 +187,7 @@ class OrderService:
 
     def handle_client_error(self, error, timer):
         if error.error_msg == 'position not exist':
-            opposite_position = 'Long' if self.position_side is 'Short' else 'Short'
+            opposite_position = 'Long' if self.position_side == 'Short' else 'Short'
             position = self.position_side if not self.is_swap else opposite_position
             error_msg = f'NO {position.upper()} POSITION TO CLOSE'
         else:
