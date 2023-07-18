@@ -25,13 +25,17 @@ def get_credential_status(exchange: str):
 
     return response
 
-
+# TOFO add extra fields to frontend reuqest
 @bp.route('/credentials/<exchange>', methods=['POST'])
 def post_credentials(exchange: str):
     data = json.loads(request.data)
-    new_credentials = Credentials(data['public_key'], data['private_key'], data['exchange'])
+    new_credentials = Credentials(public_key=data['public_key'],
+                                  private_key=data['private_key'],
+                                  access_token=data['access_token'],
+                                  account_id=data['account_id'],
+                                  exchange=data['exchange'])
     credentials = get_credentials(exchange)
-    is_first_login = credentials.public_key == '' and credentials.private_key == ''
+    is_first_login = credentials.public_key == '' and credentials.private_key == ''  and credentials.access_token == ''
     is_wrong_private_key = data['private_key_current'] != credentials.private_key
     is_blank_credential = credentials.public_key == '' or credentials.private_key == ''
 
@@ -66,7 +70,7 @@ def get_credentials(exchange: str):
 
 
 def create_new_empty_credentials(exchange: str):
-    _credentials = Credentials('', '', exchange)
+    _credentials = Credentials(exchange=exchange)
     create_credentials(_credentials)
     return _credentials
 
@@ -74,7 +78,9 @@ def create_new_empty_credentials(exchange: str):
 def update_credentials(credentials: Credentials):
     new_keys = {"$set": {
         "public_key": credentials.public_key,
-        "private_key": credentials.private_key
+        "private_key": credentials.private_key,
+        "access_token": credentials.access_token,
+        "account_id": credentials.account_id,
     }}
     db.update_one({"exchange": credentials.exchange}, new_keys)
 
@@ -82,5 +88,7 @@ def update_credentials(credentials: Credentials):
 def create_credentials(credentials: Credentials):
     db.insert_one({"exchange": credentials.exchange,
                    "public_key": credentials.public_key,
-                   "private_key": credentials.private_key
+                   "private_key": credentials.private_key,
+                   "access_token": credentials.access_token,
+                   "account_id": credentials.account_id,
                    })

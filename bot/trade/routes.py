@@ -1,10 +1,10 @@
 import json
 
-from bingX.perpetual.v1 import Perpetual
 from flask import request, g
 
 from ..cache import Cache
-from ..services.order_service import OrderService
+from ..clients import Client
+from ..services import BaseOrderService as OrderService
 from ..trade import bp
 from ..db import store_user_credentials
 
@@ -20,7 +20,8 @@ def perpetual_order(exchange):
     credentials = get_user_credentials(exchange)
     if credentials is None:
         return json.dumps({'status': 'NO_CREDENTIALS_FOUND'}), 400
-    client = Perpetual(credentials.public_key, credentials.private_key)
+
+    client = Client(credentials).client
     trade = json.loads(request.data)
     service = OrderService(client=client,
                            exchange=exchange,
@@ -34,6 +35,11 @@ def perpetual_order(exchange):
                            )
 
     return service.start_order()
+    # case 'oanda':
+    #     client = 3
+    #
+    # case _:
+    #     return json.dumps({'status': 'NO_EXCHANGE_FOUND'}), 400
 
 
 @bp.route('/trade/clear-cache', methods=['POST'])
@@ -42,5 +48,5 @@ def clear_cache():
     return json.dumps({'status': 'SUCCESS', 'msg': 'cache cleared'}), 200
 
 
-def get_user_credentials(exchange):
+def get_user_credentials(exchange: str):
     return next((credential for credential in g.user_credentials if credential.exchange == exchange), None)

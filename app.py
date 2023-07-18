@@ -1,7 +1,7 @@
 import select
 import eventlet
 
-eventlet.monkey_patch(all=True)
+# eventlet.monkey_patch(all=True)
 
 from eventlet import wsgi
 import os

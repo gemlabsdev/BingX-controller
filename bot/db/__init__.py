@@ -18,8 +18,11 @@ def get_user_credentials():
     data = mongo.db[os.environ['COLLECTION_NAME']].find({})
     user_credentials = []
     for credential in data:
-        user_credentials.append(Credentials(credential['public_key'],
-                                            credential['private_key'],
-                                            credential['exchange']))
+        user_credentials.append(Credentials(public_key=credential['public_key'] or None,
+                                            private_key=credential['private_key'] or None,
+                                            access_token=credential['access_token'] or None,
+                                            account_id=credential['account_id'] or None,
+                                            exchange=credential['exchange'] or None))
+        print(user_credentials[0].account_id)
+        print(user_credentials[0].access_token)
     return user_credentials
-
