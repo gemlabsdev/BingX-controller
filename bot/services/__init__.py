@@ -23,6 +23,7 @@ class BaseOrderService:
     def __init__(self,
                  client: any = None,
                  symbol: str = None,
+                 is_joint_symbol: bool = False,
                  exchange: str = None,
                  side: str = None,
                  action: str = None,
@@ -33,7 +34,7 @@ class BaseOrderService:
                  safety: bool = False
                  ):
         self.client = client
-        self.symbol = _set_split_symbol(symbol)
+        self.symbol = _set_split_symbol(symbol) if not is_joint_symbol else symbol
         self.exchange = exchange
         self.side = side
         self.action = action
@@ -41,16 +42,14 @@ class BaseOrderService:
         self.entrust_price = 0
         self.leverage = leverage
         self.quantity = quantity * self.leverage
-        self.entrust_volume = self._set_entrust_volume(self.quantity)
+        self.entrust_volume = self._set_entrust_volume()
         self.margin = margin
         self.position_side = "Long" if self.side == 'Bid' else 'Short'
         self.safety = safety
         self.is_swap = False
 
-    def _set_entrust_volume(self, quantity: float):
-        asset_price = self.client.get_asset_price(self.symbol)
-
-        return quantity / asset_price
+    def _set_entrust_volume(self):
+        return self.client.get_order_volume(self.symbol, self.quantity)
 
     def set_margin_mode(self):
         margin = Cache.get_asset_margin(self.exchange, self.symbol)
@@ -71,8 +70,8 @@ class BaseOrderService:
         if position.get_id() is not None and not force:
             return position
         response = self.client.get_open_positions(self.symbol)
-        print('requesting api position')
         if api_positions := response['positions']:
+            print(api_positions[0]['positionId'])
             return Position(api_positions[0]['positionId'], api_positions[0]['positionSide'])
 
     def update_cache(self) -> None:
@@ -115,7 +114,6 @@ class BaseOrderService:
         if self.action == 'Open':
             if position is None:
                 open_order = self.open_order()
-                print(Cache.get_asset_position(self.exchange, self.symbol))
                 if open_order['status'] == 'ERROR':
                     self.update_cache()
                     return open_order
@@ -139,18 +137,17 @@ class BaseOrderService:
                 self.log_message(f'OPENED {self.position_side.upper()} POSITION', timer)
                 return json.dumps({'status': 'SUCCESS'})
 
-
     def open_order(self):
         try:
             self.set_leverage()
             self.set_margin_mode()
-            print(self.client)
             response = self.client.enter_position(symbol=self.symbol,
                                                   side=self.side,
                                                   action=self.action,
                                                   entrust_price=self.entrust_price,
                                                   entrust_volume=self.entrust_volume,
                                                   trade_type=self.trade_type)
+            time.sleep(0.2)
             self.update_cache()
             return {"status": "SUCCESS"}
 
@@ -159,8 +156,8 @@ class BaseOrderService:
 
     def close_order(self, position_id: str) -> object:
         try:
-            print(f'closing {position_id}')
-            self.client.exit_position(self.symbol, position_id)
+            time.sleep(1)
+            self.client.exit_position(self.symbol, position_id, self.quantity)
             self.remove_position_from_cache()
             return {"status": "SUCCESS"}
         except self.client.exception as error:

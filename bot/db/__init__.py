@@ -1,7 +1,7 @@
 import os
 from flask_pymongo import PyMongo
 from flask import g
-from ..utils.credentials import Credentials
+from ..utils.credentials import *
 
 mongo = PyMongo()
 
@@ -18,11 +18,12 @@ def get_user_credentials():
     data = mongo.db[os.environ['COLLECTION_NAME']].find({})
     user_credentials = []
     for credential in data:
-        user_credentials.append(Credentials(public_key=credential['public_key'] or None,
-                                            private_key=credential['private_key'] or None,
-                                            access_token=credential['access_token'] or None,
-                                            account_id=credential['account_id'] or None,
-                                            exchange=credential['exchange'] or None))
-        print(user_credentials[0].account_id)
-        print(user_credentials[0].access_token)
+        exchange_credentials = ExchangeCredentials(public_key=credential['exchange']['public_key'],
+                                                   private_key=credential['exchange']['private_key'])
+        broker_credentials = BrokerCredentials(server=credential['broker']['server'],
+                                               account=credential['broker']['account'],
+                                               password=credential['broker']['password'],)
+        user_credentials.append(Credentials(name=credential['name'],
+                                            exchange_credentials=exchange_credentials,
+                                            broker_credentials=broker_credentials))
     return user_credentials
