@@ -39,7 +39,7 @@ def exchange_order(exchange):
 
 
 @bp.route('/trade/ctrader/<broker>', methods=['POST'])
-async def broker_order(broker):
+def broker_order(broker):
     # print(Cache.get_exchange(broker))
     credentials = get_user_credentials(broker)
     print(credentials)
@@ -49,7 +49,7 @@ async def broker_order(broker):
     client = Client(credentials).client
     trade = json.loads(request.data)
     print(client)
-    service = await OrderService(client=client,
+    service = OrderService(client=client,
                                  is_joint_symbol=True,
                                  exchange=broker,
                                  symbol=trade['symbol'],
