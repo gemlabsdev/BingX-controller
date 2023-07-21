@@ -147,7 +147,7 @@ class BaseOrderService:
                                                   entrust_price=self.entrust_price,
                                                   entrust_volume=self.entrust_volume,
                                                   trade_type=self.trade_type)
-            time.sleep(0.2)
+            time.sleep(0.1)
             self.update_cache()
             return {"status": "SUCCESS"}
 
@@ -156,7 +156,7 @@ class BaseOrderService:
 
     def close_order(self, position_id: str) -> object:
         try:
-            time.sleep(1)
+            time.sleep(0.2)
             self.client.exit_position(self.symbol, position_id, self.quantity)
             self.remove_position_from_cache()
             return {"status": "SUCCESS"}
