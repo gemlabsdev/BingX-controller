@@ -1,5 +1,5 @@
 import json
-
+import re
 from flask import request, g
 
 from ..cache import Cache
@@ -9,24 +9,41 @@ from ..trade import bp
 from ..db import store_user_credentials
 
 
+def _sanitize_symbol(symbol: str, intermediary: str):
+    _symbol = re.sub(r"\..*", '', symbol)
+    if intermediary == 'exchange':
+        return _set_split_symbol(_symbol)
+    else:
+        return _symbol
+
+
+def _set_split_symbol(symbol: str, quote: str = 'USDT'):
+    symbol_length = len(symbol)
+    quote_length = len(quote)
+    middle = symbol_length - quote_length
+
+    return symbol[:middle] + "-" + symbol[middle:]
+
+
 @bp.before_request
 def find_user_credentials():
     store_user_credentials()
 
 
-@bp.route('/trade/<exchange>', methods=['POST'])
-def exchange_order(exchange):
-    print(Cache.get_exchange(exchange))
-    credentials = get_user_credentials(exchange)
+@bp.route('/trade/<intermediary>/<agent>', methods=['POST'])
+def exchange_order(intermediary, agent):
+    credentials = get_user_credentials(agent)
+    print(credentials)
     if credentials is None:
         return json.dumps({'status': 'NO_CREDENTIALS_FOUND'}), 400
 
-    client = Client(credentials).client
-    print(client)
+    client = Client(credentials=credentials, intermediary=intermediary).client
+    client.ping()
     trade = json.loads(request.data)
+    sanitized_symbol = _sanitize_symbol(trade['symbol'], intermediary)
     service = OrderService(client=client,
-                           exchange=exchange,
-                           symbol=trade['symbol'],
+                           agent=agent,
+                           symbol=sanitized_symbol,
                            side=trade['side'],
                            action=trade['action'],
                            quantity=trade['quantity'],
@@ -35,33 +52,9 @@ def exchange_order(exchange):
                            safety=trade['safety'] if 'safety' in trade else False
                            )
 
-    return service.start_order()
-
-
-@bp.route('/trade/ctrader/<broker>', methods=['POST'])
-def broker_order(broker):
-    # print(Cache.get_exchange(broker))
-    credentials = get_user_credentials(broker)
-    print(credentials)
-    if credentials is None:
-        return json.dumps({'status': 'NO_CREDENTIALS_FOUND'}), 400
-
-    client = Client(credentials).client
-    trade = json.loads(request.data)
-    print(client)
-    service = OrderService(client=client,
-                                 is_joint_symbol=True,
-                                 exchange=broker,
-                                 symbol=trade['symbol'],
-                                 side=trade['side'],
-                                 action=trade['action'],
-                                 quantity=trade['quantity'],
-                                 trade_type=trade['trade_type'],
-                                 leverage=trade['leverage'] if 'leverage' in trade else 1,
-                                 safety=trade['safety'] if 'safety' in trade else False
-                                 )
     response = service.start_order()
-    client.close_connection()
+    if intermediary == 'broker':
+        client.close_connection()
     return response
 
 

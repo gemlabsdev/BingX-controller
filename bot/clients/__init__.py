@@ -1,17 +1,45 @@
 import math
 import time
+import ccxt
 from typing import List, Union, Dict, Any
-
 from bingX import ClientError
 from bingX.perpetual.v1 import Perpetual as BingXClient
-
 from ..utils.credentials import Credentials
 from ejtraderCT import Ctrader as CtraderClient
 
 
+def _generate_broker_position_object(positions: List):
+    if len(positions) > 0:
+        open_positions = {'positions': [
+            {
+                'positionId': positions[0]['pos_id'],
+                'positionSide': 'LONG' if positions[0]['side'] == 'Buy' else 'SHORT',
+            }
+        ]
+        }
+    else:
+        open_positions = {'positions': None}
+    return open_positions
+
+
+def _generate_exchange_position_object(positions: List):
+    if len(positions) > 0:
+        open_positions = {'positions': [
+            {
+                'positionId': positions[0]['info']['positionId'],
+                'positionSide': positions[0]['info']['positionSide'].upper(),
+            }
+        ]
+        }
+    else:
+        open_positions = {'positions': None}
+    return open_positions
+
+
 class Client:
-    def __init__(self, credentials: Credentials = None):
+    def __init__(self, credentials: Credentials, intermediary: str):
         self.name = credentials.name
+        self.intermediary = intermediary
         self.exchange_credentials = credentials.exchange_credentials
         self.broker_credentials = credentials.broker_credentials
         self.client = self._get_wrapped_client()
@@ -19,51 +47,74 @@ class Client:
     def __repr__(self):
         return 'Client here'
 
+    def _get_exchange_client(self):
+        exchange_class = getattr(ccxt, self.name)
+        return exchange_class({
+            'apiKey': self.exchange_credentials.public_key,
+            'secret': self.exchange_credentials.private_key,
+            'rateLimit': 100,
+            # must be specific to exchange
+            'options': {
+                'defaultType': 'swap',
+            }
+        })
+
+    def _get_broker_client(self):
+        return CtraderClient(self.broker_credentials.server,
+                             self.broker_credentials.account,
+                             self.broker_credentials.password)
+
     def _get_wrapped_client(self):
-        if self.name == 'bingx':
-            return _BingXClientWrapper(BingXClient(self.exchange_credentials.public_key,
-                                                   self.exchange_credentials.private_key))
-        return _CtraderClientWrapper(CtraderClient(self.broker_credentials.server,
-                                            self.broker_credentials.account,
-                                            self.broker_credentials.password),
-                              self.name)
+        if self.intermediary == 'exchange':
+            return _ExchangeClientWrapper(self._get_exchange_client())
+        else:
+            return _CtraderClientWrapper(self._get_broker_client())
 
 
-class _BingXClientWrapper:
+class _ExchangeClientWrapper:
     def __init__(self, client):
         self.client = client
-        self.exception = ClientError
+        self.exception = BaseException
 
     def __repr__(self):
-        return 'BingX Client Wrapper'
+        return f'{self.client.name.title()} Client Wrapper'
 
-    def get_order_volume(self, symbol: str, quantity: float) -> float:
-        response = self.client.latest_price(symbol)
+    def get_order_amount(self, symbol: str, quantity: float) -> float:
 
-        return quantity / float(response['tradePrice'])
+        response = self.client.fetch_ticker(symbol)
+        return quantity / float(response['last'])
 
     def change_margin_mode(self, symbol: str, margin_type: str) -> None:
-        self.client.switch_margin_mode(symbol, margin_type)
+        self.client.setMarginMode(margin_type, symbol)
         return
 
     def change_leverage(self, symbol: str, leverage: int) -> None:
-        self.client.switch_leverage(symbol, 'Long', leverage)
-        self.client.switch_leverage(symbol, 'Short', leverage)
+        self.client.set_leverage(leverage, symbol, {'side': 'LONG'})
+        self.client.set_leverage(leverage, symbol, {'side': 'SHORT'})
         return
 
-    def get_open_positions(self, symbol: str) -> List:
-        return self.client.positions(symbol)
+    def get_open_positions(self, symbol: str):
+        positions = self.client.fetch_positions([symbol])
+        return _generate_exchange_position_object(positions)
 
-    def enter_position(self, symbol, side, action, entrust_volume, entrust_price, trade_type):
-        return self.client.place_order(symbol=symbol,
-                                       side=side,
-                                       action=action,
-                                       entrustPrice=entrust_price,
-                                       entrustVolume=entrust_volume,
-                                       tradeType=trade_type)
+    def enter_position(self, symbol, trade_type, side, amount, position_side):
+        params = {'positionSide': position_side}
+        return self.client.create_order(symbol=symbol,
+                                        type=trade_type,
+                                        side=side,
+                                        amount=amount,
+                                        params=params)
 
-    def exit_position(self, symbol: str, position_id: str, quantity: float):
-        return self.client.close_position(symbol, position_id)
+    def exit_position(self, symbol: str, trade_type: str, side: str, amount: float, position_id: str, quantity: float):
+        positions = self.client.fetch_positions([symbol])
+        position_amount = float(positions[0]['info']['positionAmt'])
+        position_side = positions[0]['info']['positionSide']
+        params = {'reduce_only': True, 'positionSide': position_side}
+        return self.client.create_order(symbol=symbol,
+                                        type=trade_type,
+                                        side='buy' if position_side == 'SHORT' else 'sell',
+                                        amount=position_amount,
+                                        params=params)
 
     def error_handler(self, error, position_side, is_swap):
         if error.error_msg == 'position not exist':
@@ -76,20 +127,15 @@ class _BingXClientWrapper:
 
 
 class _CtraderClientWrapper:
-    def __init__(self, client, name):
+    def __init__(self, client):
         self.client = client
-        self.name = name
         self.exception = BaseException
 
     def __repr__(self):
-        return f'{self.name.title()} Client Wrapper'
-
-    def ping(self):
-        checkConnection = self.client.isconnected()
-        print("Is Connected?: ", checkConnection)
+        return f'{self.client.name.title()} Client Wrapper'
 
     # We calculate the number of lots for the give quantity
-    def get_order_volume(self, symbol: str, quantity: float) -> float:
+    def get_order_amount(self, symbol: str, quantity: float) -> float:
         lots = quantity / 100000
         return lots
 
@@ -104,28 +150,17 @@ class _CtraderClientWrapper:
         time.sleep(0.1)
         positions = self.client.positions()
         time.sleep(0.1)
-        if len(positions) > 0:
-            open_positions = {'positions': [
-                {
-                    'positionId': positions[0]['pos_id'],
-                    'positionSide': 'Long' if positions[0]['side'] == 'Buy' else 'Short',
-                }
-            ]
-            }
-        else:
-            open_positions = {'positions': None}
-        print('op')
-        print(open_positions)
-        return open_positions
 
-    def enter_position(self, symbol, side, action, entrust_volume, entrust_price, trade_type):
-        volume = entrust_volume if side == 'Bid' else -1 * entrust_volume
-        if side == 'Bid':
-            return self.client.buy(symbol=symbol, volume=entrust_volume, stoploss=0, takeprofit=0)
-        else:
-            return self.client.sell(symbol=symbol, volume=entrust_volume, stoploss=0, takeprofit=0)
+        return _generate_broker_position_object(positions)
 
-    def exit_position(self, symbol: str, position_id: str, quantity: float):
+    def enter_position(self, symbol, trade_type, side, amount, position_side):
+        volume = amount if side == 'buy' else -1 * amount
+        if side == 'buy':
+            return self.client.buy(symbol=symbol, volume=amount, stoploss=0, takeprofit=0)
+        else:
+            return self.client.sell(symbol=symbol, volume=amount, stoploss=0, takeprofit=0)
+
+    def exit_position(self, symbol: str, trade_type: str, side: str, amount: float, position_id: str, quantity: float):
         self.client.positionCloseById(position_id, quantity)
 
     def error_handler(self, error, position_side, is_swap):
