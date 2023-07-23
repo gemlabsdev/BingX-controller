@@ -42,7 +42,6 @@ def get_credential_status(exchange: str):
     return response
 
 
-# TODO FIX this
 @bp.route('/credentials/<intermediary>/<agent>', methods=['POST'])
 def post_credentials(intermediary: str, agent: str):
     fetch_user_credentials(intermediary)
