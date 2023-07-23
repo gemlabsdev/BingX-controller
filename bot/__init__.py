@@ -5,7 +5,7 @@ from .config import Config
 from .utils.logger import logger
 from .utils.credentials import Credentials
 from .utils.socket_io_handler import SocketIOHandler
-from .db import mongo, store_user_credentials
+from .db import mongo, fetch_user_credentials
 
 
 def create_app():

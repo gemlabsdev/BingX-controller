@@ -6,7 +6,7 @@ from ..cache import Cache
 from ..clients import Client
 from ..services import BaseOrderService as OrderService
 from ..trade import bp
-from ..db import store_user_credentials
+from ..db import fetch_user_credentials
 
 
 def _sanitize_symbol(symbol: str, intermediary: str):
@@ -25,20 +25,20 @@ def _set_split_symbol(symbol: str, quote: str = 'USDT'):
     return symbol[:middle] + "-" + symbol[middle:]
 
 
-@bp.before_request
-def find_user_credentials():
-    store_user_credentials()
+# @bp.before_request
+# def find_user_credentials():
+#     fetch_user_credentials()
 
 
 @bp.route('/trade/<intermediary>/<agent>', methods=['POST'])
 def exchange_order(intermediary, agent):
+    fetch_user_credentials(collection_name=intermediary)
     credentials = get_user_credentials(agent)
     print(credentials)
     if credentials is None:
         return json.dumps({'status': 'NO_CREDENTIALS_FOUND'}), 400
 
     client = Client(credentials=credentials, intermediary=intermediary).client
-    client.ping()
     trade = json.loads(request.data)
     sanitized_symbol = _sanitize_symbol(trade['symbol'], intermediary)
     service = OrderService(client=client,

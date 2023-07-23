@@ -52,7 +52,7 @@ class Client:
         return exchange_class({
             'apiKey': self.exchange_credentials.public_key,
             'secret': self.exchange_credentials.private_key,
-            'rateLimit': 100,
+            'rateLimit': 10,
             # must be specific to exchange
             'options': {
                 'defaultType': 'swap',
