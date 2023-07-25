@@ -1,5 +1,7 @@
 import json
 import re
+import time
+
 from flask import request, g
 
 from ..cache import Cache
@@ -28,10 +30,10 @@ def _set_split_symbol(symbol: str, quote: str = 'USDT'):
 # @bp.before_request
 # def find_user_credentials():
 #     fetch_user_credentials()
-
+# flask async only works with python 3.8
 
 @bp.route('/trade/<intermediary>/<agent>', methods=['POST'])
-def exchange_order(intermediary, agent):
+async def exchange_order(intermediary, agent):
     fetch_user_credentials(collection_name=intermediary)
     credentials = get_user_credentials(agent)
     print(credentials)
@@ -53,6 +55,8 @@ def exchange_order(intermediary, agent):
                            )
 
     response = service.start_order()
+    time.sleep(2)
+    print('ok')
     if intermediary == 'broker':
         client.close_connection()
     return response
